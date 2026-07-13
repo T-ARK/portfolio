@@ -1,17 +1,14 @@
-/* ============================================================
-   JISHNU // 104 — Portfolio JS
-   ============================================================ */
 
 'use strict';
 
 /* ── DOM References ─────────────────────────────────────────── */
-const navbar    = document.getElementById('navbar');
+const navbar = document.getElementById('navbar');
 const navToggle = document.getElementById('navToggle');
-const navLinks  = document.getElementById('navLinks');
-const backTop   = document.getElementById('backTop');
+const navLinks = document.getElementById('navLinks');
+const backTop = document.getElementById('backTop');
 const idCardScene = document.getElementById('idCardScene');
 const allNavLinks = document.querySelectorAll('.nav-link');
-const revealEls   = document.querySelectorAll('[data-reveal]');
+const revealEls = document.querySelectorAll('[data-reveal]');
 
 /* ── Navbar scroll effect ───────────────────────────────────── */
 function onScroll() {
@@ -278,48 +275,48 @@ class LanyardSimulation {
   constructor(container, cardElement) {
     this.container = container;
     this.card = cardElement;
-    
+
     // Create canvas
     this.canvas = document.createElement('canvas');
     this.canvas.className = 'lanyard-canvas';
     this.container.insertBefore(this.canvas, this.container.firstChild);
     this.ctx = this.canvas.getContext('2d');
-    
+
     // Simulation parameters
     this.gravity = 0.5;
     this.damping = 0.996;
     this.iterations = 6;
-    
+
     this.points = [];
     this.constraints = [];
-    
+
     this.draggedPoint = null;
     this.isDragging = false;
-    
+
     this.initPhysics();
     this.initEvents();
-    
+
     // Start animation loop
     this.active = true;
     this.animate();
   }
-  
+
   initPhysics() {
     const rect = this.container.getBoundingClientRect();
     const w = rect.width || 320;
     const h = 550; // Larger simulation height to accommodate loop hanging below neck
-    
+
     this.canvas.width = w;
     this.canvas.height = h;
-    
+
     // Lanyard U-shape loop: Left Anchor -> Clasp -> Right Anchor
     const numPoints = 9;
     const claspIndex = 4;
-    
+
     const leftAnchorX = w / 2 - 75;
     const rightAnchorX = w / 2 + 75;
     const anchorY = 10;
-    
+
     this.points = [];
     for (let i = 0; i < numPoints; i++) {
       let x, y, fixed = false;
@@ -336,7 +333,7 @@ class LanyardSimulation {
         x = leftAnchorX + (rightAnchorX - leftAnchorX) * t;
         y = anchorY + Math.sin(t * Math.PI) * 122;
       }
-      
+
       this.points.push({
         x, y,
         px: x, py: y,
@@ -344,7 +341,7 @@ class LanyardSimulation {
         isClasp: i === claspIndex
       });
     }
-    
+
     // Create constraints (links)
     const segmentLength = 28;
     this.constraints = [];
@@ -355,7 +352,7 @@ class LanyardSimulation {
         length: segmentLength
       });
     }
-    
+
     // Card attachment
     const clasp = this.points[claspIndex];
     this.cardNode = {
@@ -367,14 +364,14 @@ class LanyardSimulation {
       isCard: true
     };
     this.points.push(this.cardNode);
-    
+
     this.constraints.push({
       p1: clasp,
       p2: this.cardNode,
       length: 30 // length of snap clasp
     });
   }
-  
+
   initEvents() {
     const getMousePos = (e) => {
       const rect = this.canvas.getBoundingClientRect();
@@ -383,26 +380,26 @@ class LanyardSimulation {
         y: e.clientY - rect.top
       };
     };
-    
+
     const startDrag = (e) => {
       if (e.target.closest('a') || e.target.closest('input') || e.target.closest('textarea') || e.target.closest('button')) {
         return;
       }
-      
+
       const pos = getMousePos(e);
       const dist = Math.hypot(pos.x - this.cardNode.x, pos.y - this.cardNode.y);
       if (dist < 100) {
         // Prevent default browser drag selection & ghost image triggers
         e.preventDefault();
         e.stopPropagation();
-        
+
         // Capture pointer immediately
         e.currentTarget.setPointerCapture(e.pointerId);
-        
+
         document.body.classList.add("dragging");
         document.body.style.userSelect = "none";
         document.body.style.webkitUserSelect = "none";
-        
+
         this.isDragging = true;
         this.dragOffset = {
           x: this.cardNode.x - pos.x,
@@ -411,78 +408,78 @@ class LanyardSimulation {
         this.mousePos = pos;
       }
     };
-    
+
     const doDrag = (e) => {
       if (!this.isDragging) return;
       this.mousePos = getMousePos(e);
     };
-    
+
     const stopDrag = (e) => {
       if (!this.isDragging) return;
-      
+
       try {
         e.currentTarget.releasePointerCapture(e.pointerId);
-      } catch (err) {}
-      
+      } catch (err) { }
+
       document.body.classList.remove("dragging");
       document.body.style.userSelect = "";
       document.body.style.webkitUserSelect = "";
-      
+
       this.isDragging = false;
       this.mousePos = null;
     };
-    
+
     // Bind pointer events for unified mouse/touch handling and capture redirection
     this.card.addEventListener('pointerdown', startDrag);
     this.card.addEventListener('pointermove', doDrag);
     this.card.addEventListener('pointerup', stopDrag);
     this.card.addEventListener('pointercancel', stopDrag);
-    
+
     // Prevent default HTML5 dragging of the card itself
     this.card.addEventListener('dragstart', (e) => e.preventDefault());
   }
-  
+
   update() {
     const rect = this.container.getBoundingClientRect();
     if (this.canvas.width !== rect.width) {
       this.initPhysics();
     }
-    
+
     // Verlet Integration
     for (let p of this.points) {
       if (p.fixed) continue;
-      
+
       // CardNode velocity is not integrated via gravity while dragging,
       // but we maintain its px/py history in the drag block so velocity is preserved!
       if (p === this.cardNode && this.isDragging) continue;
-      
+
       // Heavier cardNode gravity (2.2) to maximize bounce tension and momentum
       const gravityForce = (p === this.cardNode) ? 2.2 : 0.4;
-      
+
       const vx = (p.x - p.px) * this.damping;
       const vy = (p.y - p.py) * this.damping;
-      
+
       p.px = p.x;
       p.py = p.y;
-      
+
       p.x += vx;
       p.y += vy + gravityForce;
     }
-    
+
     // Apply spring force pulling cardNode toward mouse pos when dragging
     if (this.isDragging && this.mousePos) {
       // Preserve previous position BEFORE updating current position to calculate exact velocity
       this.cardNode.px = this.cardNode.x;
       this.cardNode.py = this.cardNode.y;
-      
+
       const targetX = this.mousePos.x + this.dragOffset.x;
       const targetY = this.mousePos.y + this.dragOffset.y;
-      
+
       // Pull strength coefficient (0.45 creates a responsive trailing attraction)
       this.cardNode.x += (targetX - this.cardNode.x) * 0.45;
       this.cardNode.y += (targetY - this.cardNode.y) * 0.45;
     }
-    
+
     // Solve constraints (springy, elastic rope)
     for (let k = 0; k < this.iterations; k++) {
       for (let c of this.constraints) {
@@ -490,25 +487,25 @@ class LanyardSimulation {
         const dy = c.p2.y - c.p1.y;
         const dist = Math.hypot(dx, dy);
         if (dist === 0) continue;
-        
+
         // High stiffness (0.85) for fabric strap, and tight stiffness (0.98) for trigger clasp
         const stiffness = (c.p2 === this.cardNode) ? 0.98 : 0.85;
         const diff = (c.length - dist) / dist;
-        
+
         const p1Fixed = c.p1.fixed;
         const p2Fixed = c.p2.fixed || (c.p2 === this.cardNode && this.isDragging);
-        
+
         if (p1Fixed && p2Fixed) continue;
-        
+
         let ratio1 = 0.5;
         let ratio2 = 0.5;
-        
+
         if (p1Fixed) { ratio1 = 0; ratio2 = 1; }
         else if (p2Fixed) { ratio1 = 1; ratio2 = 0; }
-        
+
         const offsetX = dx * diff * stiffness;
         const offsetY = dy * diff * stiffness;
-        
+
         if (!p1Fixed) {
           c.p1.x -= offsetX * ratio1;
           c.p1.y -= offsetY * ratio1;
@@ -519,7 +516,7 @@ class LanyardSimulation {
         }
       }
     }
-    
+
     // Bound card Node
     const w = this.canvas.width;
     const h = this.canvas.height;
@@ -527,32 +524,32 @@ class LanyardSimulation {
     if (this.cardNode.x > w - 40) this.cardNode.x = w - 40;
     if (this.cardNode.y > h - 110) this.cardNode.y = h - 110;
   }
-  
+
   draw() {
     const ctx = this.ctx;
     ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-    
+
     const w = this.canvas.width;
     const anchor = this.points[0]; // Point 0 is (w/2, 30)
     const clasp = this.points[3];  // Point 3 is clasp
     const cardN = this.cardNode;
-    
+
     // Silver metal gradient for clasp & slider
     const metalGrad = ctx.createLinearGradient(-5, -5, 5, 5);
     metalGrad.addColorStop(0, '#ffffff');
     metalGrad.addColorStop(0.3, '#bbbbbb');
     metalGrad.addColorStop(0.7, '#777777');
     metalGrad.addColorStop(1, '#333333');
-    
+
     // ── 1. DRAW NECK LOOP (Representing strap going around user's neck) ──
     const neckLeftX = w / 2 - 70;
     const neckRightX = w / 2 + 70;
     const neckY = -15;
-    
+
     ctx.save();
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
-    
+
     // Draw neck loop shadows
     ctx.lineWidth = 14;
     ctx.strokeStyle = 'rgba(0,0,0,0.35)';
@@ -562,7 +559,7 @@ class LanyardSimulation {
     ctx.moveTo(neckRightX, neckY + 4);
     ctx.quadraticCurveTo(w / 2, anchor.y + 4, anchor.x, anchor.y + 4);
     ctx.stroke();
-    
+
     // Draw neck loop straps
     ctx.lineWidth = 13;
     ctx.strokeStyle = '#0e0e0e';
@@ -572,7 +569,7 @@ class LanyardSimulation {
     ctx.moveTo(neckRightX, neckY);
     ctx.quadraticCurveTo(w / 2, anchor.y, anchor.x, anchor.y);
     ctx.stroke();
-    
+
     // Draw white stitch dashes on neck straps
     ctx.strokeStyle = 'rgba(255,255,255,0.4)';
     ctx.lineWidth = 1.2;
@@ -589,14 +586,14 @@ class LanyardSimulation {
     ctx.moveTo(neckRightX + 2, neckY);
     ctx.quadraticCurveTo(w / 2, anchor.y + 4, anchor.x, anchor.y + 4);
     ctx.stroke();
-    
+
     ctx.restore();
-    
+
     // ── 2. DRAW MAIN HANGING STRAP SHADOW & BAND ──
     ctx.save();
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
-    
+
     // Strap shadow
     ctx.lineWidth = 14;
     ctx.strokeStyle = 'rgba(0,0,0,0.35)';
@@ -607,7 +604,7 @@ class LanyardSimulation {
       else ctx.lineTo(p.x, p.y + 4);
     }
     ctx.stroke();
-    
+
     // Black fabric main strap
     ctx.lineWidth = 13;
     ctx.strokeStyle = '#0e0e0e';
@@ -618,32 +615,32 @@ class LanyardSimulation {
       else ctx.lineTo(p.x, p.y);
     }
     ctx.stroke();
-    
+
     ctx.restore();
-    
+
     // ── 3. DRAW WHITE EMBROIDERED "ARK" TEXT & STITCHES ──
     ctx.save();
     ctx.font = 'bold 9px "JetBrains Mono", monospace';
     ctx.fillStyle = '#ffffff';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    
+
     // Draw details in the center of the 3 main hanging segments
     for (let i = 0; i < 3; i++) {
       const p1 = this.points[i];
       const p2 = this.points[i + 1];
-      
+
       const midX = (p1.x + p2.x) / 2;
       const midY = (p1.y + p2.y) / 2;
-      
+
       const dx = p2.x - p1.x;
       const dy = p2.y - p1.y;
       const angle = Math.atan2(dy, dx);
-      
+
       ctx.save();
       ctx.translate(midX, midY);
       ctx.rotate(angle);
-      
+
       // Dashed embroidery lines on the fabric margins
       ctx.strokeStyle = 'rgba(255,255,255,0.45)';
       ctx.lineWidth = 1.0;
@@ -654,12 +651,12 @@ class LanyardSimulation {
       ctx.moveTo(-16, 4.5);
       ctx.lineTo(16, 4.5);
       ctx.stroke();
-      
+
       ctx.fillText('ARK', 0, 0.5);
       ctx.restore();
     }
     ctx.restore();
-    
+
     // ── 4. DRAW SHOULDER MEET/ADJUSTMENT COLLAR CLIP ──
     ctx.save();
     ctx.fillStyle = metalGrad;
@@ -671,19 +668,19 @@ class LanyardSimulation {
     ctx.lineWidth = 1;
     ctx.stroke();
     ctx.restore();
-    
+
     // ── 5. DRAW DETAILED METAL TRIGGER SNAP CLASP ──
     const dx = cardN.x - clasp.x;
     const dy = cardN.y - clasp.y;
     const angle = Math.atan2(dy, dx);
-    
+
     ctx.save();
     ctx.translate(clasp.x, clasp.y);
     ctx.rotate(angle);
-    
+
     ctx.fillStyle = metalGrad;
     ctx.strokeStyle = metalGrad;
-    
+
     // A. Swivel loop/D-ring (top)
     ctx.lineWidth = 2.5;
     ctx.beginPath();
@@ -692,18 +689,18 @@ class LanyardSimulation {
     ctx.lineTo(-6, 4);
     ctx.closePath();
     ctx.stroke();
-    
+
     // B. Collar collar swivel neck (middle cylinder)
     ctx.beginPath();
     ctx.rect(-3, 4, 6, 5);
     ctx.fill();
-    
+
     // C. Trigger snap hook base and loop (bottom)
     ctx.lineWidth = 2.2;
     ctx.beginPath();
     ctx.arc(0, 16, 7, -Math.PI / 2, Math.PI * 1.5);
     ctx.stroke();
-    
+
     // Snap gate clip (diagonal thin release hook)
     ctx.strokeStyle = '#444';
     ctx.lineWidth = 1.2;
@@ -711,40 +708,40 @@ class LanyardSimulation {
     ctx.moveTo(5.5, 11);
     ctx.lineTo(-4.5, 20);
     ctx.stroke();
-    
+
     // Lever trigger pin
     ctx.fillStyle = metalGrad;
     ctx.beginPath();
     ctx.arc(-5.5, 13, 2, 0, Math.PI * 2);
     ctx.fill();
-    
+
     ctx.restore();
   }
-  
+
   applyTransform() {
     const clasp = this.points[3]; // Point 3 is clasp (Point 4 is cardNode)
     const cardN = this.cardNode;
     const cardWidth = this.card.offsetWidth || 300;
-    
+
     // Align card's top edge exactly with cardNode (hanging below clasp and trigger clip)
     const x = cardN.x - cardWidth / 2;
     const y = cardN.y;
-    
+
     // Setting rotation to depend purely on velocity tilt ensures the card sits 100% straight/vertical at rest!
     const vx = cardN.x - cardN.px;
     const tilt = vx * 0.8;
-    
+
     // Apply translate and rotate, leaving the 3D hover flips intact inside the scene element
     this.card.style.transform = `translate3d(${x}px, ${y}px, 0) rotateZ(${tilt}deg)`;
   }
-  
+
   animate() {
     if (!this.active) return;
-    
+
     this.update();
     this.draw();
     this.applyTransform();
-    
+
     requestAnimationFrame(() => this.animate());
   }
 }
