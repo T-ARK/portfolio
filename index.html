@@ -1,150 +1,576 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="scroll-smooth">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>ARK Portfolio</title>
-
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-
-    <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Space+Grotesk:wght@400;600;700&family=Orbitron:wght@400;600&display=swap"
-        rel="stylesheet">
-
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ARK // Portfolio</title>
+  <meta name="description"
+    content="Arshid Chandran P K (ARK) — Computer Science student focusing on Data Science at St. Thomas College of Engineering & Technology, Kannur.">
+  <meta name="keywords"
+    content="Arshid Chandran, ARK, Portfolio, Data Science, Computer Science, C++, Java, Python, Web Developer">
+  <meta property="og:title" content="ARK // Portfolio">
+  <meta property="og:description"
+    content="Computer Science student focusing on Data Science. Building simple, responsive websites and programs.">
+  <meta property="og:type" content="website">
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;600;800&display=swap"
+    rel="stylesheet">
 </head>
 
 <body>
 
-    <header class="header">
-        <div class="container nav">
-            <div class="logo">ARK<span>.</span></div>
+  <!-- ===== NAVIGATION ===== -->
+  <nav id="navbar" class="navbar" aria-label="Main navigation">
+    <div class="nav-brand">ARK<span class="accent">.</span></div>
+    <button class="nav-toggle" id="navToggle" aria-label="Toggle navigation" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+    <ul class="nav-links" id="navLinks" role="list">
+      <li><a href="#about" class="nav-link">.about()</a></li>
+      <li><a href="#skills" class="nav-link">.skills()</a></li>
+      <li><a href="#projects" class="nav-link">.projects()</a></li>
+      <li><a href="#experience" class="nav-link">.experience()</a></li>
+      <li><a href="#contact" class="nav-link">.contact()</a></li>
+    </ul>
+    <a href="mailto:arshidarshii12@gmail.com" class="btn-outline">hire_me</a>
+  </nav>
 
-            <nav class="menu">
-                <a href="#about">About</a>
-                <a href="#projects">Projects</a>
-                <a href="#contact">Contact</a>
-            </nav>
+  <!-- ===== HERO ===== -->
+  <section id="hero" class="hero" aria-label="Hero section">
+    <div class="hero-glow"></div>
+    <div class="geo-line geo-line-1"></div>
+    <div class="geo-line geo-line-2"></div>
+    <div class="hero-grid">
+      <div class="hero-text">
+        <div class="status-badge">
+          <span class="pulse-dot"></span>
+          PORTFOLIO '2026 // SYSTEM ONLINE
         </div>
-    </header>
-
-    <section class="main container">
-        <p class="tag">Portfolio `2026</p>
-
-        <h1>
-            ARSHID <br>
-            <span class="light">CHANDRAN P K</span>
+        <h1 class="hero-title">
+          ARSHID<br>
+          CHANDRAN<br>
+          <span class="accent">P K_</span>
         </h1>
-
-        <div class="social-icons">
-            <a href="https://github.com/T-ARK" target="_blank" title="GitHub">
-                <i class="fab fa-github"></i>
+        <p class="hero-desc">
+          Hi — I’m studying Computer Science with a focus on Data Science. I enjoy learning by building simple,
+          responsive websites and small programs in C++, Java, and Python.
+        </p>
+        <div class="hero-cta">
+          <a href="#projects" class="btn-primary" id="hero-cta-btn">
+            SELECTED WORKS <i class="fa-solid fa-arrow-right"></i>
+          </a>
+          <div class="social-icons">
+            <a href="https://github.com/T-ARK" target="_blank" rel="noopener" aria-label="GitHub">
+              <i class="fa-brands fa-github"></i>
             </a>
-            <a href="https://linkedin.com/in/arshid-chandran-p-k-9974b532b" target="_blank" title="LinkedIn">
-                <i class="fab fa-linkedin"></i>
+            <a href="https://linkedin.com/in/arshid-chandran-p-k-9974b532b" target="_blank" rel="noopener"
+              aria-label="LinkedIn">
+              <i class="fa-brands fa-linkedin-in"></i>
             </a>
-            <a href="mailto:arshidarshii12@gmail.com" title="Email">
-                <i class="fas fa-envelope"></i>
+            <a href="mailto:arshidarshii12@gmail.com" aria-label="Email">
+              <i class="fa-regular fa-envelope"></i>
             </a>
+          </div>
+        </div>
+      </div>
+
+      <div class="hero-dashboard" aria-hidden="true">
+        <div class="terminal-card dashboard-card">
+          <div class="dashboard-badge">2.0.1 // PORT_8080</div>
+          <div class="dashboard-header">
+            <span class="accent-sm">SYS_STATUS : STABLE</span>
+            <span class="accent-sm">UPTIME : 100%</span>
+          </div>
+          <div class="divider"></div>
+          <div class="metrics">
+            <div class="metric">
+              <div class="metric-label">
+                <span>CPU_LOAD</span>
+                <span class="accent">18%</span>
+              </div>
+              <div class="progress-bar">
+                <div class="progress-fill" style="width:18%"></div>
+              </div>
+            </div>
+            <div class="metric">
+              <div class="metric-label">
+                <span>MEM_USAGE</span>
+                <span class="accent">34%</span>
+              </div>
+              <div class="progress-bar">
+                <div class="progress-fill" style="width:34%"></div>
+              </div>
+            </div>
+            <div class="metric">
+              <div class="metric-label">
+                <span>COMPILING_DS</span>
+                <span class="accent">89%</span>
+              </div>
+              <div class="progress-bar">
+                <div class="progress-fill" style="width:89%"></div>
+              </div>
+            </div>
+          </div>
+          <div class="dashboard-footer">
+            <div class="big-num">03</div>
+            <div class="big-label">Selected_Works</div>
+          </div>
+          <div class="corner-tl"></div>
+          <div class="corner-br"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="scroll-hint" aria-hidden="true">
+      <span>SCROLL</span>
+      <i class="fa-solid fa-arrow-down"></i>
+    </div>
+  </section>
+
+  <!-- ===== ABOUT ===== -->
+  <section id="about" class="section" aria-label="About section">
+    <div class="container">
+      <div class="about-grid">
+        <div class="about-text">
+          <div class="section-label">
+            <span class="accent">//</span>
+            <h2>About Me</h2>
+          </div>
+          <p class="about-tagline accent">Studying Computer Science with a focus on Data Science.</p>
+          <div class="about-paragraphs">
+            <p>
+              Hi there! I’m <strong>Arshid Chandran P K</strong>, currently studying Computer Science with a focus on
+              Data Science at St. Thomas College of Engineering &amp; Technology in Kannur.
+            </p>
+            <p>
+              I got my feet wet in coding with C++ and Java before the web caught my eye. These days I love putting
+              together simple, responsive sites with HTML and CSS and poking around to see how browsers turn my ideas
+              into living pages.
+            </p>
+            <p>
+              My approach is all about building a solid foundation — clean, readable code, logical thinking — and then
+              letting curiosity lead me toward newer web tools and frameworks.
+            </p>
+          </div>
         </div>
 
-        <h2 style="text-align: justify;">
-            Hi — I’m studying Computer Science with a focus on Data Science.<br>
-            I enjoy learning by building: simple, responsive websites and small programs in C++, Java, and Python.
-            I’m sharpening fundamentals like readable code and problem solving while exploring modern web tools.
-        </h2>
-
-    </section>
-
-    <section id="about" class="about container">
-        <h2 class="section-title">About Me</h2>
-
-        <div class="about-content">
-            <div class="about-text" style="text-align: justify;">
-                Hi there! I’m <strong>Arshid Chandran P K</strong>, currently studying Computer Science with a focus on
-                Data Science at
-                St. Thomas College of Engineering & Technology in Kannur.<br>
-                I got my feet wet in coding with C++ and Java before the web caught my eye. These days I love putting
-                together simple, responsive sites with HTML and CSS and poking around to see how browsers turn my
-                ideas into living pages. My approach is all about building a solid foundation—clean, readable code,
-                logical thinking—and then letting curiosity lead me toward newer web tools and frameworks.
-            </div>
-
-            <div class="photo">
-                <img src="assets/images/profile.png" alt="Profile Photo">
-            </div>
-        </div>
-
-        <div class="skills">
-            <div class="card">
-                <h3>Development</h3>
-                <p>Basic programming using C++, Java and Python.
-                    Practice in problem solving, simple algorithms and debugging programs.</p>
-            </div>
-
-            <div class="card">
-                <h3>Design</h3>
-                <p>HTML and CSS website creation, responsive layouts, basic UI styling and webpage structure.
-                    I focus on clean and readable design.</p>
-            </div>
-        </div>
-    </section>
-
-    <section id="projects" class="projects container">
-        <h2 class="section-title">Selected Works</h2>
-
-        <div class="project-grid">
-
-            <div class="project">
-                <img src="assets/images/project1.jpeg" alt="Project">
-                <div class="project-info">
-                    <h3>Smart Banking System (Java)</h3>
-                    <p>A simple console banking app built in Java. It demonstrates creating accounts, depositing,
-                        withdrawing, and checking balances — a great exercise in object-oriented design.</p>
+        <div class="about-card-wrapper">
+          <!-- ID Card with 3D flip -->
+          <div class="lanyard-hook" aria-hidden="true"></div>
+          <div class="id-card-scene" id="idCardScene">
+            <div class="id-card">
+              <!-- FRONT -->
+              <div class="id-card-face id-card-front" aria-label="ID Card front">
+                <div class="id-card-header">
+                  <span class="id-label">Personnel ID // ARK</span>
+                  <span class="pulse-dot small"></span>
                 </div>
-            </div>
-
-            <div class="project">
-                <img src="assets/images/project2.png" alt="Project">
-                <div class="project-info">
-                    <h3>Animated Login Page</h3>
-                    <p>A small responsive login screen made with HTML & CSS, featuring input styling and subtle
-                        animations to improve the user experience.</p>
+                <div class="id-card-body">
+                  <div class="avatar-wrapper">
+                    <div class="avatar-border"></div>
+                    <img src="assets/images/profile.png" alt="Arshid Chandran P K" class="avatar-img" loading="lazy">
+                    <div class="avatar-badge"></div>
+                  </div>
+                  <div class="id-name">Arshid Chandran</div>
+                  <div class="id-role accent">Data Science Student</div>
+                  <div class="id-status">
+                    <span class="accent">●</span>
+                    SYSTEM ONLINE // AVAILABLE
+                  </div>
+                  <div class="barcode" aria-hidden="true">
+                    <div class="barcode-bars">
+                      <div style="width:1px;height:100%"></div>
+                      <div style="width:3px;height:100%"></div>
+                      <div style="width:1px;height:75%"></div>
+                      <div style="width:2px;height:100%"></div>
+                      <div style="width:1px;height:50%"></div>
+                      <div style="width:4px;height:100%"></div>
+                      <div style="width:1px;height:100%"></div>
+                      <div style="width:2px;height:75%"></div>
+                      <div style="width:1px;height:100%"></div>
+                      <div style="width:3px;height:100%"></div>
+                      <div style="width:1px;height:50%"></div>
+                      <div style="width:2px;height:100%"></div>
+                      <div style="width:1px;height:100%"></div>
+                      <div style="width:4px;height:100%"></div>
+                      <div style="width:1px;height:75%"></div>
+                      <div style="width:2px;height:100%"></div>
+                      <div style="width:3px;height:100%"></div>
+                      <div style="width:1px;height:50%"></div>
+                    </div>
+                    <span class="barcode-text">00104-ACPK-2026</span>
+                  </div>
                 </div>
-            </div>
+                <div class="id-card-footer-bar"></div>
+              </div>
 
-            <div class="project">
-                <img src="assets/images/project3.png" alt="Project">
-                <div class="project-info">
-                    <h3>Glassmorphism UI Design</h3>
-                    <p>An experiment with glassmorphism: layered transparency, blur and soft shadows to create a modern,
-                        frosted-glass look and feel.</p>
+              <!-- BACK -->
+              <div class="id-card-face id-card-back" aria-label="ID Card back — README">
+                <div class="readme-header">
+                  <div class="dots">
+                    <span class="dot red"></span>
+                    <span class="dot yellow"></span>
+                    <span class="dot green"></span>
+                  </div>
+                  <span class="readme-title">README.md — utf-8</span>
                 </div>
+                <div class="readme-body">
+                  <div class="readme-line"><span class="ln">01</span><span class="accent readme-h1"># Arshid
+                      Chandran</span></div>
+                  <div class="readme-line"><span class="ln">02</span><span class="readme-italic">CS &amp; Data Science @
+                      STCET Kannur</span></div>
+                  <div class="readme-line"><span class="ln">03</span><span class="readme-muted">Building simple
+                      responsive websites and programming in C++, Java, &amp; Python.</span></div>
+                  <div class="readme-line"><span class="ln">04</span><span class="accent readme-h2">## ./now</span>
+                  </div>
+                  <div class="readme-line"><span class="ln">05</span><span class="readme-muted">- Sharpening readable
+                      code and logic fundamentals</span></div>
+                  <div class="readme-line"><span class="ln">06</span><span class="readme-muted">- Experimenting with
+                      HTML/CSS layouts &amp; animations</span></div>
+                  <div class="readme-line"><span class="ln">07</span><span class="readme-muted">- Pursuing computer
+                      science &amp; analytics workflows</span></div>
+                  <div class="readme-line"><span class="ln">08</span><span class="readme-muted">- Exploring database
+                      systems and data modeling</span></div>
+                </div>
+              </div>
             </div>
-
+          </div>
+          <p class="flip-hint" aria-hidden="true"><i class="fa-solid fa-rotate"></i> hover to flip</p>
         </div>
-    </section>
+      </div>
+    </div>
+  </section>
 
-    <section id="contact" class="contact container">
-        <h2 class="section-title">Contact</h2>
-        <form class="contact-form">
-            <input type="text" placeholder="Your name" required><br>
-            <input type="email" placeholder="Email address" required><br>
-            <textarea rows="5" placeholder="Write your message here..."></textarea><br>
-            <button type="submit">Send Message</button>
-        </form>
-    </section>
+  <!-- ===== SKILLS ===== -->
+  <section id="skills" class="section section-alt" aria-label="Skills section">
+    <div class="container">
+      <div class="section-header">
+        <div class="section-label">
+          <span class="accent">//</span>
+          <h2>Skills &amp; Toolkit</h2>
+        </div>
+        <p class="section-desc">My core areas of focus as I build practical software and design structures.</p>
+      </div>
+      <div class="skills-grid">
+        <div class="terminal-card skill-card" data-category="development">
+          <div class="skill-card-header">
+            <h3>Development</h3>
+            <span class="chip-count">[06]</span>
+          </div>
+          <div class="chip-group">
+            <span class="chip">C++</span>
+            <span class="chip">Java</span>
+            <span class="chip">Python</span>
+            <span class="chip">Algorithms</span>
+            <span class="chip">Debugging</span>
+            <span class="chip">OOP Logic</span>
+          </div>
+        </div>
+        <div class="terminal-card skill-card" data-category="design">
+          <div class="skill-card-header">
+            <h3>Design &amp; Web</h3>
+            <span class="chip-count">[06]</span>
+          </div>
+          <div class="chip-group">
+            <span class="chip">HTML</span>
+            <span class="chip">CSS</span>
+            <span class="chip">Responsive UI</span>
+            <span class="chip">Styling</span>
+            <span class="chip">Wireframing</span>
+            <span class="chip">Clean Layouts</span>
+          </div>
+        </div>
+        <div class="terminal-card skill-card" data-category="databases">
+          <div class="skill-card-header">
+            <h3>Databases</h3>
+            <span class="chip-count">[03]</span>
+          </div>
+          <div class="chip-group">
+            <span class="chip">MySQL</span>
+            <span class="chip">PostgreSQL</span>
+            <span class="chip">SQLite</span>
+          </div>
+        </div>
+        <div class="terminal-card skill-card" data-category="tools">
+          <div class="skill-card-header">
+            <h3>Tools &amp; Env</h3>
+            <span class="chip-count">[04]</span>
+          </div>
+          <div class="chip-group">
+            <span class="chip">Git</span>
+            <span class="chip">GitHub</span>
+            <span class="chip">VS Code</span>
+            <span class="chip">Jupyter Notebooks</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
 
+  <!-- ===== PROJECTS ===== -->
+  <section id="projects" class="section" aria-label="Projects section">
+    <div class="container">
+      <div class="section-header">
+        <div class="section-label">
+          <span class="accent">//</span>
+          <h2>Selected Works</h2>
+        </div>
+        <p class="section-desc">Practical projects created to demonstrate programming logic, layout design, and UI
+          layouts.</p>
+      </div>
 
+      <div class="projects-list">
 
-    <footer class="footer">
-        <p>© 2026 ARK</p>
-        <p>Designed & built by ARK</p>
-    </footer>
+        <!-- Project 1 -->
+        <article class="terminal-card project-card" id="project-banking">
+          <div class="project-inner">
+            <div class="project-info">
+              <div class="project-category">JAVA DEVELOPMENT</div>
+              <h3 class="project-title">Smart Banking System</h3>
+              <p class="project-desc">
+                A simple console banking application built in Java. It demonstrates object-oriented design and standard
+                logic structures for creating accounts, managing balances, depositing, and withdrawing funds.
+              </p>
+              <ul class="project-features">
+                <li><span class="accent">▹</span> Engineered object-oriented account records and methods.</li>
+                <li><span class="accent">▹</span> Handles validation checks for secure transaction bounds.</li>
+                <li><span class="accent">▹</span> Interactive command interface for user accounts.</li>
+              </ul>
+              <div class="chip-group">
+                <span class="chip">Java</span>
+                <span class="chip">Console UI</span>
+                <span class="chip">OOP Design</span>
+                <span class="chip">Control Flow</span>
+              </div>
+              <a href="https://github.com/T-ARK" target="_blank" class="project-link"
+                aria-label="Banking System repository">
+                <i class="fa-solid fa-link"></i> Code Repository
+              </a>
+            </div>
+            <div class="project-visual" aria-hidden="true">
+              <div class="visual-img-container">
+                <img src="assets/images/project1.jpeg" alt="Smart Banking System CLI Output" class="project-visual-img">
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <!-- Project 2 -->
+        <article class="terminal-card project-card" id="project-login">
+          <div class="project-inner">
+            <div class="project-info">
+              <div class="project-category">UI DESIGN / INTERACTION</div>
+              <h3 class="project-title">Animated Login Page</h3>
+              <p class="project-desc">
+                A highly responsive login interface engineered with semantic HTML and custom CSS. Employs
+                micro-interactions, input focus animations, and hover transitions to deliver a premium user entry
+                workflow.
+              </p>
+              <ul class="project-features">
+                <li><span class="accent">▹</span> Features clean, responsive input layouts.</li>
+                <li><span class="accent">▹</span> Implements visual state focus styling and transitions.</li>
+                <li><span class="accent">▹</span> Structured with fully validation-ready forms.</li>
+              </ul>
+              <div class="chip-group">
+                <span class="chip">HTML5</span>
+                <span class="chip">CSS3 Layouts</span>
+                <span class="chip">Micro-Animations</span>
+                <span class="chip">Input States</span>
+              </div>
+              <a href="https://github.com/T-ARK" target="_blank" class="project-link"
+                aria-label="Animated Login Page repository">
+                <i class="fa-solid fa-link"></i> Code Repository
+              </a>
+            </div>
+            <div class="project-visual" aria-hidden="true">
+              <div class="visual-img-container">
+                <img src="assets/images/project2.png" alt="Animated Login Page Preview" class="project-visual-img">
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <!-- Project 3 -->
+        <article class="terminal-card project-card" id="project-glass">
+          <div class="project-inner">
+            <div class="project-info">
+              <div class="project-category">CSS EXPERIMENT</div>
+              <h3 class="project-title">Glassmorphism UI Design</h3>
+              <p class="project-desc">
+                A design exploration focused on modern frosted-glass visual components. Utilizes multi-layered CSS
+                backdrop filters, border shadows, transparency blending, and background gradients to achieve depth.
+              </p>
+              <ul class="project-features">
+                <li><span class="accent">▹</span> Implements custom backdrop filters for frosted blurring.</li>
+                <li><span class="accent">▹</span> Integrates transparency layers and shadow positioning.</li>
+                <li><span class="accent">▹</span> Responsive grid alignment matching desktop cards.</li>
+              </ul>
+              <div class="chip-group">
+                <span class="chip">CSS Filters</span>
+                <span class="chip">Layer Transparency</span>
+                <span class="chip">Web Design</span>
+                <span class="chip">UI Experiment</span>
+              </div>
+              <a href="https://github.com/T-ARK" target="_blank" class="project-link"
+                aria-label="Glassmorphism UI repository">
+                <i class="fa-solid fa-link"></i> Code Repository
+              </a>
+            </div>
+            <div class="project-visual" aria-hidden="true">
+              <div class="visual-img-container">
+                <img src="assets/images/project3.png" alt="Glassmorphism UI Preview" class="project-visual-img">
+              </div>
+            </div>
+          </div>
+        </article>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== EXPERIENCE ===== -->
+  <section id="experience" class="section section-alt" aria-label="Experience section">
+    <div class="container">
+      <div class="section-header">
+        <div class="section-label">
+          <span class="accent">//</span>
+          <h2>Internships</h2>
+        </div>
+        <p class="section-desc">My practical learning records and industry exposure.</p>
+      </div>
+      <div class="timeline">
+
+        <div class="timeline-item" id="exp-bits">
+          <div class="timeline-dot"></div>
+          <div class="timeline-content">
+            <div class="timeline-header">
+              <div>
+                <h3 class="timeline-role">Software Development Intern</h3>
+                <p class="timeline-company accent">Bizneex Information Technology Systems (BITS), Kannur</p>
+              </div>
+              <div class="timeline-date">Jan 2024 — 2 weeks</div>
+            </div>
+            <ul class="timeline-points">
+              <li>Built a full-stack SQL Database Migration Tool using Python, Flask, MySQL, and PostgreSQL to transfer
+                data across database systems while maintaining integrity and consistency.</li>
+              <li>Worked on frontend development using HTML, CSS, and JavaScript — improving form layouts, input
+                validation, and interface usability of the migration dashboard.</li>
+              <li>Diagnosed and resolved Cross-Origin Resource Sharing (CORS) issues by configuring Flask-CORS, enabling
+                successful frontend-backend API communication.</li>
+              <li>Executed a PostgreSQL-to-MySQL migration workflow on test tables and verified results via terminal,
+                gaining hands-on exposure to API integration, debugging, and end-to-end testing.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="timeline-item" id="exp-nexoent">
+          <div class="timeline-dot"></div>
+          <div class="timeline-content">
+            <div class="timeline-header">
+              <div>
+                <h3 class="timeline-role">Python for Data Science Intern</h3>
+                <p class="timeline-company accent">Nexoent Innovation</p>
+              </div>
+              <div class="timeline-date">June 2025 — 2 weeks</div>
+            </div>
+            <ul class="timeline-points">
+              <li>Performed exploratory data analysis on structured datasets using Python and Jupyter Notebook.</li>
+              <li>Created data visualizations to identify trends and patterns within datasets using Matplotlib and
+                Pandas.</li>
+              <li>Applied core data science workflows including data cleaning, transformation, and summarization.</li>
+            </ul>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== CONTACT ===== -->
+  <section id="contact" class="section" aria-label="Contact section">
+    <div class="container">
+      <div class="contact-grid-wrapper">
+        <div class="contact-info-block">
+          <div class="section-label">
+            <span class="accent">//</span>
+            <h2>Contact</h2>
+          </div>
+          <p class="contact-tagline">Let's build something useful.</p>
+          <p class="contact-desc">
+            I am open to internships, software roles, design collaborations, and learning opportunities. If you want to
+            talk shop, discuss code, or share interesting projects, feel free to send a message.
+          </p>
+          <div class="contact-links">
+            <div class="contact-row">
+              <span class="contact-label">Email</span>
+              <a href="mailto:arshidarshii12@gmail.com" class="contact-value accent"
+                id="contact-email">arshidarshii12@gmail.com</a>
+            </div>
+            <div class="contact-row">
+              <span class="contact-label">GitHub</span>
+              <a href="https://github.com/T-ARK" target="_blank" rel="noopener" class="contact-value accent"
+                id="contact-github">github.com/T-ARK</a>
+            </div>
+            <div class="contact-row">
+              <span class="contact-label">LinkedIn</span>
+              <a href="https://linkedin.com/in/arshid-chandran-p-k-9974b532b" target="_blank" rel="noopener"
+                class="contact-value accent" id="contact-linkedin">linkedin.com/in/arshid-chandran-p-k</a>
+            </div>
+          </div>
+          <div class="terminal-prompt" aria-hidden="true">
+            <span class="accent">$</span> ping ark --status --alive<span class="blink-cursor"></span>
+          </div>
+        </div>
+
+        <div class="contact-form-block">
+          <div class="terminal-card form-card">
+            <div class="form-header">
+              <span class="accent">sys_mailer.sh</span>
+              <div class="dots"><span class="dot red"></span><span class="dot yellow"></span><span
+                  class="dot green"></span></div>
+            </div>
+            <form class="contact-form" action="https://formspree.io/f/xyzkvpql" method="POST">
+              <!-- Placeholder or Formspree target -->
+              <div class="form-group">
+                <label for="form-name">NAME</label>
+                <input type="text" id="form-name" name="name" placeholder="Enter name" required>
+              </div>
+              <div class="form-group">
+                <label for="form-email">EMAIL</label>
+                <input type="email" id="form-email" name="email" placeholder="Enter email" required>
+              </div>
+              <div class="form-group">
+                <label for="form-message">MESSAGE</label>
+                <textarea id="form-message" name="message" rows="5" placeholder="Write message..." required></textarea>
+              </div>
+              <button type="submit" class="form-submit-btn">EXECUTE_SEND <i
+                  class="fa-solid fa-paper-plane"></i></button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== FOOTER ===== -->
+  <footer class="footer" role="contentinfo">
+    <div class="footer-left">© 2026 ARK</div>
+    <div class="footer-right">
+      <a href="https://github.com/T-ARK" target="_blank" rel="noopener" aria-label="GitHub">GitHub</a>
+      <a href="https://linkedin.com/in/arshid-chandran-p-k-9974b532b" target="_blank" rel="noopener"
+        aria-label="LinkedIn">LinkedIn</a>
+      <a href="mailto:arshidarshii12@gmail.com" aria-label="Email">Email</a>
+    </div>
+  </footer>
+
+  <!-- Back to top -->
+  <button class="back-top" id="backTop" aria-label="Back to top">
+    <i class="fa-solid fa-arrow-up"></i>
+  </button>
+
+  <script src="main.js"></script>
 </body>
 
 </html>
