@@ -752,3 +752,68 @@ if (cardWrapper && idCardScene) {
   const lanyardSim = new LanyardSimulation(cardWrapper, idCardScene);
 }
 
+/* ── Google Sheets Contact Form ─────────────────────────────── */
+
+const contactForm = document.getElementById('contactForm');
+
+const GOOGLE_SCRIPT_URL =
+  "https://script.google.com/macros/s/AKfycbx4F8H5RevrvZtG0JpPy1zyZW-z5tFTsaaTgNqNpOufocHs2m2jhhsqW-BRMQy3d-uO/exec";
+
+if (contactForm) {
+  contactForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const submitButton = contactForm.querySelector('.form-submit-btn');
+    const originalButtonText = submitButton.innerHTML;
+
+    const name = document.getElementById('form-name').value.trim();
+    const email = document.getElementById('form-email').value.trim();
+    const message = document.getElementById('form-message').value.trim();
+
+    if (!name || !email || !message) {
+      alert('Please fill in all fields.');
+      return;
+    }
+
+    submitButton.disabled = true;
+    submitButton.innerHTML =
+      'TRANSMITTING... <i class="fa-solid fa-spinner fa-spin"></i>';
+
+    try {
+      await fetch(GOOGLE_SCRIPT_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: {
+          'Content-Type': 'text/plain;charset=utf-8'
+        },
+        body: JSON.stringify({
+          name: name,
+          email: email,
+          message: message
+        })
+      });
+
+      contactForm.reset();
+
+      submitButton.innerHTML =
+        'MESSAGE_SENT <i class="fa-solid fa-check"></i>';
+
+      setTimeout(() => {
+        submitButton.innerHTML = originalButtonText;
+        submitButton.disabled = false;
+      }, 3000);
+
+    } catch (error) {
+      console.error('Contact form error:', error);
+
+      submitButton.innerHTML =
+        'SEND_FAILED <i class="fa-solid fa-xmark"></i>';
+
+      setTimeout(() => {
+        submitButton.innerHTML = originalButtonText;
+        submitButton.disabled = false;
+      }, 3000);
+    }
+  });
+}
+
