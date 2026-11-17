@@ -1,0 +1,198 @@
+.line-sidebar {
+  --accent-color: #005eff;
+  --text-color: #777777;
+  --marker-color: #2a2a2a;
+  --marker-length: 46px;
+  --marker-gap: 8px;
+  --max-shift: 20px;
+  --item-gap: 24px;
+  --font-size: 0.85rem;
+  --smoothing: 100ms;
+
+  position: relative;
+  font-family: var(--font, 'JetBrains Mono', monospace);
+}
+
+.line-sidebar__container {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  padding: 0.5rem 0;
+  user-select: none;
+}
+
+/* Continuous vertical hairline ruler spine */
+.line-sidebar__ruler-spine {
+  position: absolute;
+  right: 0;
+  top: 4px;
+  bottom: 4px;
+  width: 1px;
+  background: linear-gradient(
+    to bottom,
+    transparent 0%,
+    var(--marker-color) 10%,
+    var(--marker-color) 90%,
+    transparent 100%
+  );
+  opacity: 0.6;
+}
+
+/* Technical tags at the top and bottom of the ruler */
+.line-sidebar__ruler-tag {
+  font-size: 0.55rem;
+  color: var(--marker-color);
+  letter-spacing: 0.12em;
+  padding-right: 6px;
+  opacity: 0.85;
+}
+
+/* Ruler blocks (Top, Between Items, Bottom) */
+.line-sidebar__ruler-block {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 5px;
+  position: relative;
+  z-index: 1;
+}
+
+.line-sidebar__ruler-block--top {
+  margin-bottom: 8px;
+}
+
+.line-sidebar__ruler-block--gap {
+  padding: 6px 0;
+}
+
+.line-sidebar__ruler-block--bottom {
+  margin-top: 8px;
+}
+
+/* Individual Ruler Ticks */
+.line-sidebar__ruler-tick {
+  position: relative;
+  height: 1px;
+  transform-origin: right center;
+  background-color: color-mix(in srgb, var(--accent-color) calc(var(--effect, 0) * 100%), var(--marker-color));
+  transform: scaleX(calc(1 + var(--effect, 0) * 0.4));
+  transition: opacity 0.1s ease;
+}
+
+.line-sidebar__ruler-tick--major {
+  width: var(--marker-length);
+  height: 1.5px;
+  opacity: calc(0.6 + var(--effect, 0) * 0.4);
+}
+
+.line-sidebar__ruler-tick--sub {
+  width: calc(var(--marker-length) * 0.62);
+  opacity: calc(0.45 + var(--effect, 0) * 0.55);
+}
+
+.line-sidebar__ruler-tick--mid {
+  width: calc(var(--marker-length) * 0.42);
+  opacity: calc(0.35 + var(--effect, 0) * 0.65);
+}
+
+.line-sidebar__ruler-tick--minor {
+  width: calc(var(--marker-length) * 0.22);
+  opacity: calc(0.25 + var(--effect, 0) * 0.75);
+}
+
+.line-sidebar__tick-num {
+  position: absolute;
+  right: calc(100% + 5px);
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 0.58rem;
+  color: color-mix(in srgb, var(--accent-color) calc(var(--effect, 0) * 100%), var(--marker-color));
+  font-family: var(--font, monospace);
+  letter-spacing: 0.05em;
+}
+
+/* List containing nav items and inter-item ruler blocks */
+.line-sidebar__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.line-sidebar__group {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+/* Interactive Nav Item */
+.line-sidebar__item {
+  position: relative;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--marker-gap);
+  padding: 2px 0;
+  z-index: 2;
+}
+
+/* Widen hover/click target so interaction is effortless */
+.line-sidebar__item::before {
+  content: '';
+  position: absolute;
+  inset: -6px -24px -6px -40px;
+}
+
+.line-sidebar__label {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.4rem;
+  font-size: var(--font-size);
+  line-height: 1.2;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  color: color-mix(in srgb, var(--accent-color) calc(var(--effect, 0) * 100%), var(--text-color));
+  transform: translateX(calc(var(--effect, 0) * -1 * var(--max-shift)));
+  white-space: nowrap;
+}
+
+.line-sidebar__index {
+  font-size: 0.78em;
+  opacity: calc(0.45 + var(--effect, 0) * 0.55);
+  font-family: var(--font, monospace);
+}
+
+.line-sidebar__text {
+  text-transform: uppercase;
+}
+
+/* Item Marker line */
+.line-sidebar__marker {
+  height: 1.5px;
+  width: var(--marker-length);
+  background-color: color-mix(in srgb, var(--accent-color) calc(var(--effect, 0) * 100%), var(--marker-color));
+  transform-origin: right center;
+  transform: scaleX(calc(0.9 + var(--effect, 0) * 0.4));
+  border-radius: 1px;
+}
+
+/* Fixed container placed on the RIGHT */
+.line-sidebar-container {
+  position: fixed;
+  right: 1.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 900;
+  pointer-events: auto;
+  user-select: none;
+}
+
+/* Hide on screens <= 1240px to ensure zero collision with main content */
+@media (max-width: 1240px) {
+  .line-sidebar-container {
+    display: none;
+  }
+}
