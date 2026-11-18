@@ -22,8 +22,8 @@ export default function About() {
           <div data-reveal data-reveal-delay="1" className="about-card-wrapper">
             <div className="lanyard-container">
               <Lanyard
-                frontImage="/card-front.png"
-                backImage="/card-back.png"
+                frontImage="/card-front.png?v=2"
+                backImage="/card-back.png?v=2"
                 strapImage="/band.png"
                 cardColor="#0b0f19"
                 finish="smooth"
@@ -34,8 +34,8 @@ export default function About() {
                 breeze={0.35}
                 interactive={true}
                 intro={true}
-                strapLength={0.16}
-                size={0.65}
+                strapLength={0.15}
+                size={0.62}
               />
             </div>
             <p className="flip-hint" aria-hidden="true">
