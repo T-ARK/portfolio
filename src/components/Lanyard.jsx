@@ -435,7 +435,9 @@ const paintFace = (canvas, image, color, fit) => {
 
 const paintStrap = (canvas, image, color) => {
   const across = 192;
-  const along = image ? Math.max(64, Math.round((image.width / image.height) * across)) : across * 2;
+  const along = image
+    ? Math.max(64, Math.round(image.width > image.height ? (image.width / image.height) * across : (image.height / image.width) * across))
+    : across * 2;
   canvas.width = across;
   canvas.height = along;
   const ctx = canvas.getContext('2d');
@@ -443,11 +445,15 @@ const paintStrap = (canvas, image, color) => {
   ctx.fillStyle = toCss(color);
   ctx.fillRect(0, 0, across, along);
   if (image) {
-    ctx.save();
-    ctx.translate(across, 0);
-    ctx.rotate(Math.PI / 2);
-    ctx.drawImage(image, 0, 0, along, across);
-    ctx.restore();
+    if (image.width > image.height) {
+      ctx.save();
+      ctx.translate(across, 0);
+      ctx.rotate(Math.PI / 2);
+      ctx.drawImage(image, 0, 0, along, across);
+      ctx.restore();
+    } else {
+      ctx.drawImage(image, 0, 0, across, along);
+    }
     return along / across;
   }
   const ink = luminance(color) > 0.5 ? [0, 0, 0] : [1, 1, 1];
@@ -946,6 +952,11 @@ const Lanyard = ({
         bodyMesh.geometry = geometry.body;
         frontMesh.geometry = geometry.face;
         backMesh.geometry = geometry.face.clone();
+        const backUv = backMesh.geometry.getAttribute('uv');
+        for (let i = 0; i < backUv.count; i++) {
+          backUv.setX(i, 1 - backUv.getX(i));
+        }
+        backUv.needsUpdate = true;
         frontMesh.position.z = THICKNESS / 2 + BEVEL + 0.0006;
         backMesh.rotation.y = Math.PI;
         backMesh.position.z = -(THICKNESS / 2 + BEVEL + 0.0006);
