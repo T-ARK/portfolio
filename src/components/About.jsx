@@ -1,5 +1,5 @@
 import { personalInfo } from '../data/portfolioData';
-import LanyardCard from './LanyardCard';
+import Lanyard from './Lanyard';
 
 export default function About() {
   return (
@@ -19,8 +19,28 @@ export default function About() {
             </div>
           </div>
 
-          <div data-reveal data-reveal-delay="1">
-            <LanyardCard />
+          <div data-reveal data-reveal-delay="1" className="about-card-wrapper">
+            <div className="lanyard-container">
+              <Lanyard
+                frontImage="/card-front.png"
+                backImage="/card-back.png"
+                strapImage="/band.png"
+                cardColor="#0e1422"
+                finish="holographic"
+                metal="silver"
+                gravity={0.9}
+                damping={0.5}
+                elasticity={0.65}
+                breeze={0.35}
+                interactive={true}
+                intro={true}
+                strapLength={0.46}
+                size={0.62}
+              />
+            </div>
+            <p className="flip-hint" aria-hidden="true">
+              <i className="fa-solid fa-arrows-up-down"></i> drag to swing &bull; click to flip
+            </p>
           </div>
         </div>
       </div>
