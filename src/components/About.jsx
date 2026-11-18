@@ -25,8 +25,8 @@ export default function About() {
                 frontImage="/card-front.png"
                 backImage="/card-back.png"
                 strapImage="/band.png"
-                cardColor="#0e1422"
-                finish="holographic"
+                cardColor="#0b0f19"
+                finish="smooth"
                 metal="silver"
                 gravity={0.9}
                 damping={0.5}

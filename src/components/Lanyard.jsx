@@ -26,8 +26,9 @@ const CLAMP_BODY = 0.15;
 const FACE_WIDTH = 1024;
 
 const FINISHES = {
-  glossy: { roughness: 0.42, metalness: 0, clearcoat: 1, clearcoatRoughness: 0.06, foil: 0, anisotropy: 0 },
-  matte: { roughness: 0.85, metalness: 0, clearcoat: 0, clearcoatRoughness: 0.6, foil: 0, anisotropy: 0 },
+  glossy: { roughness: 0.2, metalness: 0, clearcoat: 0.6, clearcoatRoughness: 0.06, foil: 0, anisotropy: 0 },
+  matte: { roughness: 0.7, metalness: 0, clearcoat: 0, clearcoatRoughness: 0.5, foil: 0, anisotropy: 0 },
+  smooth: { roughness: 0.28, metalness: 0, clearcoat: 0.3, clearcoatRoughness: 0.1, foil: 0, anisotropy: 0 },
   holographic: { roughness: 0.3, metalness: 0, clearcoat: 1, clearcoatRoughness: 0.04, foil: 1, anisotropy: 0 },
   metallic: { roughness: 0.36, metalness: 0.75, clearcoat: 0.5, clearcoatRoughness: 0.18, foil: 0, anisotropy: 0.7 }
 };
@@ -816,14 +817,10 @@ const Lanyard = ({
     };
 
     const frontMaterial = new THREE.MeshPhysicalMaterial({
-      map: frontTexture,
-      normalMap: grain,
-      normalScale: new THREE.Vector2(0.06, 0.06)
+      map: frontTexture
     });
     const backMaterial = new THREE.MeshPhysicalMaterial({
-      map: backTexture,
-      normalMap: grain,
-      normalScale: new THREE.Vector2(0.06, 0.06)
+      map: backTexture
     });
     frontMaterial.onBeforeCompile = injectFoil;
     backMaterial.onBeforeCompile = injectFoil;
