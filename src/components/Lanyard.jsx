@@ -145,7 +145,8 @@ if (foilStrength > 0.0) {
 const METALS = {
   silver: { color: '#d9dce2', roughness: 0.16 },
   gold: { color: '#e4b965', roughness: 0.2 },
-  graphite: { color: '#4d4f55', roughness: 0.28 }
+  graphite: { color: '#25272c', roughness: 0.35 },
+  black: { color: '#1c1e22', roughness: 0.38 }
 };
 
 const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
