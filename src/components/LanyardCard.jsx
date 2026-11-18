@@ -8,8 +8,10 @@ export default function LanyardCard() {
   const sceneRef = useRef(null);
   const cardRef = useRef(null);
   const [isFlipped, setIsFlipped] = useState(false);
+  const hasDraggedRef = useRef(false);
+  const nudgeRef = useRef(null);
 
-  // Lanyard Verlet Physics Simulation
+  // Elastic Lanyard Physics & Verlet Rope Simulation
   useEffect(() => {
     const container = containerRef.current;
     const canvas = canvasRef.current;
@@ -22,90 +24,83 @@ export default function LanyardCard() {
     let active = true;
     let animId = null;
 
-    // Simulation params
-    const gravity = 0.5;
-    const damping = 0.996;
-    const iterations = 6;
+    // Canvas & dimensions
+    let w = 320;
+    let h = 550;
 
-    let points = [];
-    let constraints = [];
-    let cardNode = null;
+    // Anchor points (neck collar)
+    let leftAnchor = { x: 110, y: 12 };
+    let rightAnchor = { x: 210, y: 12 };
+    let restX = 160;
+    let restY = 150; // Rest position of card top
+
+    // Card spring-mass state (elastic core)
+    const card = {
+      x: restX,
+      y: restY,
+      vx: 0,
+      vy: 0,
+      angle: 0,
+      angularVel: 0,
+    };
+
+    // Intermediate rope strand points for realistic elastic wave ripple
+    const leftStrand = [];
+    const rightStrand = [];
+    const NUM_SEGMENTS = 4; // 3 intermediate points per side
+
+    // Pointer & drag tracking
     let isDragging = false;
     let dragOffset = { x: 0, y: 0 };
     let mousePos = null;
+    let pointerHistory = [];
+    let startPointerPos = { x: 0, y: 0 };
 
     const initPhysics = () => {
       const rect = container.getBoundingClientRect();
-      const w = rect.width || 320;
-      const h = Math.min(550, Math.max(460, window.innerHeight * 0.65));
+      w = rect.width || 320;
+      h = Math.min(560, Math.max(480, window.innerHeight * 0.65));
 
       canvas.width = w;
       canvas.height = h;
 
-      const numPoints = 9;
-      const claspIndex = 4;
+      const anchorSpacing = Math.min(65, Math.max(38, w * 0.19));
+      leftAnchor = { x: w / 2 - anchorSpacing, y: 12 };
+      rightAnchor = { x: w / 2 + anchorSpacing, y: 12 };
+      restX = w / 2;
+      restY = Math.min(155, Math.max(130, h * 0.28));
 
-      const anchorSpacing = Math.min(75, Math.max(35, w * 0.22));
-      const leftAnchorX = w / 2 - anchorSpacing;
-      const rightAnchorX = w / 2 + anchorSpacing;
-      const anchorY = 10;
+      card.x = restX;
+      card.y = restY;
+      card.vx = 0;
+      card.vy = 0;
+      card.angle = 0;
+      card.angularVel = 0;
 
-      points = [];
-      for (let i = 0; i < numPoints; i++) {
-        let x, y, fixed = false;
-        if (i === 0) {
-          x = leftAnchorX;
-          y = anchorY;
-          fixed = true;
-        } else if (i === numPoints - 1) {
-          x = rightAnchorX;
-          y = anchorY;
-          fixed = true;
-        } else {
-          const t = i / (numPoints - 1);
-          x = leftAnchorX + (rightAnchorX - leftAnchorX) * t;
-          y = anchorY + Math.sin(t * Math.PI) * 122;
-        }
+      // Initialize intermediate strand points
+      leftStrand.length = 0;
+      rightStrand.length = 0;
 
-        points.push({
-          x,
-          y,
-          px: x,
-          py: y,
-          fixed,
-          isClasp: i === claspIndex,
-        });
+      const claspY = restY - 30;
+      for (let i = 1; i < NUM_SEGMENTS; i++) {
+        const t = i / NUM_SEGMENTS;
+        const lx = leftAnchor.x + (restX - leftAnchor.x) * t;
+        const ly = leftAnchor.y + (claspY - leftAnchor.y) * t + Math.sin(t * Math.PI) * 18;
+        leftStrand.push({ x: lx, y: ly, px: lx, py: ly });
+
+        const rx = rightAnchor.x + (restX - rightAnchor.x) * t;
+        const ry = rightAnchor.y + (claspY - rightAnchor.y) * t + Math.sin(t * Math.PI) * 18;
+        rightStrand.push({ x: rx, y: ry, px: rx, py: ry });
       }
-
-      const segmentLength = 28;
-      constraints = [];
-      for (let i = 0; i < numPoints - 1; i++) {
-        constraints.push({
-          p1: points[i],
-          p2: points[i + 1],
-          length: segmentLength,
-        });
-      }
-
-      const clasp = points[claspIndex];
-      cardNode = {
-        x: clasp.x,
-        y: clasp.y + 30,
-        px: clasp.x,
-        py: clasp.y + 30,
-        fixed: false,
-        isCard: true,
-      };
-      points.push(cardNode);
-
-      constraints.push({
-        p1: clasp,
-        p2: cardNode,
-        length: 30,
-      });
     };
 
     initPhysics();
+
+    // Expose a pluck / elastic nudge function (triggered on card flip / hover)
+    nudgeRef.current = (impulseY = 20, impulseAngle = 4) => {
+      card.vy += impulseY;
+      card.angularVel += impulseAngle;
+    };
 
     const getMousePos = (e) => {
       const rect = canvas.getBoundingClientRect();
@@ -116,6 +111,7 @@ export default function LanyardCard() {
     };
 
     const startDrag = (e) => {
+      // Don't intercept clicks on buttons or links inside the card
       if (
         e.target.closest('a') ||
         e.target.closest('input') ||
@@ -126,9 +122,9 @@ export default function LanyardCard() {
       }
 
       const pos = getMousePos(e);
-      if (!cardNode) return;
-      const dist = Math.hypot(pos.x - cardNode.x, pos.y - cardNode.y);
-      if (dist < 100) {
+      // Grab anywhere near card or clasp
+      const dist = Math.hypot(pos.x - card.x, pos.y - card.y);
+      if (dist < 140) {
         e.preventDefault();
         e.stopPropagation();
 
@@ -141,17 +137,30 @@ export default function LanyardCard() {
         document.body.style.webkitUserSelect = 'none';
 
         isDragging = true;
+        hasDraggedRef.current = false;
+        startPointerPos = { x: pos.x, y: pos.y };
         dragOffset = {
-          x: cardNode.x - pos.x,
-          y: cardNode.y - pos.y,
+          x: card.x - pos.x,
+          y: card.y - pos.y,
         };
         mousePos = pos;
+        pointerHistory = [{ x: pos.x, y: pos.y, t: performance.now() }];
       }
     };
 
     const doDrag = (e) => {
       if (!isDragging) return;
-      mousePos = getMousePos(e);
+      const pos = getMousePos(e);
+      mousePos = pos;
+
+      const totalDist = Math.hypot(pos.x - startPointerPos.x, pos.y - startPointerPos.y);
+      if (totalDist > 6) {
+        hasDraggedRef.current = true;
+      }
+
+      const now = performance.now();
+      pointerHistory.push({ x: pos.x, y: pos.y, t: now });
+      if (pointerHistory.length > 5) pointerHistory.shift();
     };
 
     const stopDrag = (e) => {
@@ -165,8 +174,28 @@ export default function LanyardCard() {
       document.body.style.userSelect = '';
       document.body.style.webkitUserSelect = '';
 
+      // Calculate flick velocity from pointer history for realistic throwing / slingshot recoil
+      let flickVx = 0;
+      let flickVy = 0;
+      if (pointerHistory.length >= 2) {
+        const oldest = pointerHistory[0];
+        const newest = pointerHistory[pointerHistory.length - 1];
+        const dt = Math.max(16, newest.t - oldest.t);
+        flickVx = ((newest.x - oldest.x) / dt) * 16.67; // px per 60hz frame
+        flickVy = ((newest.y - oldest.y) / dt) * 16.67;
+      }
+
+      // Bound release flick velocities
+      flickVx = Math.max(-28, Math.min(28, flickVx));
+      flickVy = Math.max(-32, Math.min(28, flickVy));
+
+      // Impart velocity + stored elastic spring kick!
+      card.vx = card.vx * 0.4 + flickVx * 0.9;
+      card.vy = card.vy * 0.4 + flickVy * 0.9;
+
       isDragging = false;
       mousePos = null;
+      pointerHistory = [];
     };
 
     const handleDragStart = (e) => e.preventDefault();
@@ -177,228 +206,278 @@ export default function LanyardCard() {
     scene.addEventListener('pointercancel', stopDrag);
     scene.addEventListener('dragstart', handleDragStart);
 
+    // ============================================================
+    // PHYSICS ENGINE — HOOKE'S SPRING TENSION & ELASTIC BOUNCE
+    // ============================================================
     const updatePhysics = () => {
       const rect = container.getBoundingClientRect();
-      if (canvas.width !== rect.width) {
+      if (Math.abs(canvas.width - rect.width) > 4) {
         initPhysics();
       }
 
-      // Verlet Integration
-      for (const p of points) {
-        if (p.fixed) continue;
-        if (p === cardNode && isDragging) continue;
-
-        const gravityForce = p === cardNode ? 2.2 : 0.4;
-        const vx = (p.x - p.px) * damping;
-        const vy = (p.y - p.py) * damping;
-
-        p.px = p.x;
-        p.py = p.y;
-        p.x += vx;
-        p.y += vy + gravityForce;
-      }
-
-      if (isDragging && mousePos && cardNode) {
-        cardNode.px = cardNode.x;
-        cardNode.py = cardNode.y;
+      // 1. CARD SPRING-MASS DYNAMICS
+      if (isDragging && mousePos) {
+        // Elastic spring pull towards cursor (creates tactile drag resistance)
         const targetX = mousePos.x + dragOffset.x;
         const targetY = mousePos.y + dragOffset.y;
-        cardNode.x += (targetX - cardNode.x) * 0.45;
-        cardNode.y += (targetY - cardNode.y) * 0.45;
+
+        const prevX = card.x;
+        const prevY = card.y;
+
+        // Pull coefficient (0.42 provides responsive tracking while stretching smoothly)
+        card.x += (targetX - card.x) * 0.42;
+        card.y += (targetY - card.y) * 0.42;
+
+        card.vx = card.x - prevX;
+        card.vy = card.y - prevY;
+      } else {
+        // Natural Elastic Spring Recoil (Hooke's Law: F = -k * displacement - c * velocity)
+        const dispX = card.x - restX;
+        const dispY = card.y - restY;
+
+        // Spring stiffness & damping coefficients for elastic bounce
+        const springK = 0.052; // Higher value = snappier, firmer rubber band snap
+        const damping = 0.948; // Preserves ~5-6 visible oscillations before settling
+        const gravity = 0.58;  // Hanging weight of the badge
+
+        const fx = -springK * dispX;
+        const fy = -springK * dispY + gravity;
+
+        card.vx = (card.vx + fx) * damping;
+        card.vy = (card.vy + fy) * damping;
+
+        card.x += card.vx;
+        card.y += card.vy;
       }
 
-      // Constraints
-      for (let k = 0; k < iterations; k++) {
-        for (const c of constraints) {
-          const dx = c.p2.x - c.p1.x;
-          const dy = c.p2.y - c.p1.y;
-          const dist = Math.hypot(dx, dy);
-          if (dist === 0) continue;
+      // 2. ROTATIONAL INERTIA & ANGULAR SPRING
+      // Target tilt responds to horizontal velocity and lateral displacement
+      const targetAngle = Math.max(
+        -32,
+        Math.min(32, card.vx * 1.6 + (card.x - restX) * 0.075)
+      );
+      const angularSpringK = 0.082;
+      const angularDamping = 0.885;
 
-          const stiffness = c.p2 === cardNode ? 0.98 : 0.85;
-          const diff = (c.length - dist) / dist;
+      card.angularVel =
+        (card.angularVel + (targetAngle - card.angle) * angularSpringK) * angularDamping;
+      card.angle += card.angularVel;
 
-          const p1Fixed = c.p1.fixed;
-          const p2Fixed = c.p2.fixed || (c.p2 === cardNode && isDragging);
+      // 3. BOUNDARY CONSTRAINTS
+      const minX = 40;
+      const maxX = w - 40;
+      const minY = 35;
+      const maxY = h - 90;
 
-          if (p1Fixed && p2Fixed) continue;
+      if (card.x < minX) {
+        card.x = minX;
+        card.vx = -card.vx * 0.5;
+      } else if (card.x > maxX) {
+        card.x = maxX;
+        card.vx = -card.vx * 0.5;
+      }
 
-          let ratio1 = 0.5;
-          let ratio2 = 0.5;
-          if (p1Fixed) {
-            ratio1 = 0;
-            ratio2 = 1;
-          } else if (p2Fixed) {
-            ratio1 = 1;
-            ratio2 = 0;
-          }
+      if (card.y < minY) {
+        card.y = minY;
+        card.vy = -card.vy * 0.5;
+      } else if (card.y > maxY) {
+        card.y = maxY;
+        card.vy = -card.vy * 0.5;
+      }
 
-          const offsetX = dx * diff * stiffness;
-          const offsetY = dy * diff * stiffness;
+      // 4. STRAND SIMULATION (Elastic wave & catenary follower)
+      const claspPos = { x: card.x, y: card.y - 30 };
 
-          if (!p1Fixed) {
-            c.p1.x -= offsetX * ratio1;
-            c.p1.y -= offsetY * ratio1;
-          }
-          if (!p2Fixed) {
-            c.p2.x += offsetX * ratio2;
-            c.p2.y += offsetY * ratio2;
-          }
+      const updateStrand = (strand, anchor) => {
+        const count = strand.length;
+        for (let i = 0; i < count; i++) {
+          const p = strand[i];
+          const t = (i + 1) / (count + 1);
+
+          // Verlet momentum
+          const vx = (p.x - p.px) * 0.91;
+          const vy = (p.y - p.py) * 0.91;
+          p.px = p.x;
+          p.py = p.y;
+          p.x += vx;
+          p.y += vy + 0.38; // gravity on strap
+
+          // Natural elastic catenary target between anchor and clasp
+          const targetX = anchor.x + (claspPos.x - anchor.x) * t;
+          const targetY = anchor.y + (claspPos.y - anchor.y) * t + Math.sin(t * Math.PI) * 14;
+
+          // Elastic spring attraction to catenary
+          p.x += (targetX - p.x) * 0.28;
+          p.y += (targetY - p.y) * 0.28;
         }
-      }
+      };
 
-      const w = canvas.width;
-      const h = canvas.height;
-      if (cardNode) {
-        if (cardNode.x < 40) cardNode.x = 40;
-        if (cardNode.x > w - 40) cardNode.x = w - 40;
-        if (cardNode.y > h - 110) cardNode.y = h - 110;
-      }
+      updateStrand(leftStrand, leftAnchor);
+      updateStrand(rightStrand, rightAnchor);
     };
 
+    // ============================================================
+    // CANVAS RENDERING — ELASTIC STRAPS, STITCHES & CHROME CLASP
+    // ============================================================
     const draw = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      if (points.length < 5 || !cardNode) return;
 
-      const w = canvas.width;
-      const anchor = points[0];
-      const clasp = points[3];
-      const cardN = cardNode;
+      const claspPos = { x: card.x, y: card.y - 30 };
 
-      const metalGrad = ctx.createLinearGradient(-5, -5, 5, 5);
+      // Chrome metallic gradient for clasps & rings
+      const metalGrad = ctx.createLinearGradient(-8, -8, 8, 8);
       metalGrad.addColorStop(0, '#ffffff');
-      metalGrad.addColorStop(0.3, '#bbbbbb');
-      metalGrad.addColorStop(0.7, '#777777');
-      metalGrad.addColorStop(1, '#333333');
+      metalGrad.addColorStop(0.25, '#c5cbd4');
+      metalGrad.addColorStop(0.65, '#6a7280');
+      metalGrad.addColorStop(1, '#2c3340');
 
-      // 1. NECK LOOP
-      const neckLeftX = w / 2 - 70;
-      const neckRightX = w / 2 + 70;
-      const neckY = -15;
-
+      // 1. DRAW TOP NECK LOOP (Representing strap looping behind user's neck)
       ctx.save();
       ctx.lineCap = 'round';
       ctx.lineJoin = 'round';
 
+      const neckLeftX = w / 2 - 68;
+      const neckRightX = w / 2 + 68;
+      const neckY = -12;
+
+      // Neck drop shadow
       ctx.lineWidth = 14;
-      ctx.strokeStyle = 'rgba(0,0,0,0.35)';
+      ctx.strokeStyle = 'rgba(0,0,0,0.4)';
       ctx.beginPath();
       ctx.moveTo(neckLeftX, neckY + 4);
-      ctx.quadraticCurveTo(w / 2, anchor.y + 4, anchor.x, anchor.y + 4);
+      ctx.quadraticCurveTo(w / 2, leftAnchor.y + 4, leftAnchor.x, leftAnchor.y + 4);
       ctx.moveTo(neckRightX, neckY + 4);
-      ctx.quadraticCurveTo(w / 2, anchor.y + 4, anchor.x, anchor.y + 4);
+      ctx.quadraticCurveTo(w / 2, rightAnchor.y + 4, rightAnchor.x, rightAnchor.y + 4);
       ctx.stroke();
 
+      // Neck main strap
       ctx.lineWidth = 13;
-      ctx.strokeStyle = '#0e0e0e';
+      ctx.strokeStyle = '#0b0f17';
       ctx.beginPath();
       ctx.moveTo(neckLeftX, neckY);
-      ctx.quadraticCurveTo(w / 2, anchor.y, anchor.x, anchor.y);
+      ctx.quadraticCurveTo(w / 2, leftAnchor.y, leftAnchor.x, leftAnchor.y);
       ctx.moveTo(neckRightX, neckY);
-      ctx.quadraticCurveTo(w / 2, anchor.y, anchor.x, anchor.y);
+      ctx.quadraticCurveTo(w / 2, rightAnchor.y, rightAnchor.x, rightAnchor.y);
       ctx.stroke();
 
-      ctx.strokeStyle = 'rgba(255,255,255,0.4)';
-      ctx.lineWidth = 1.2;
-      ctx.setLineDash([3, 3]);
+      // Cyber stitching on neck loop
+      ctx.strokeStyle = 'rgba(255,255,255,0.45)';
+      ctx.lineWidth = 1.1;
+      ctx.setLineDash([3, 4]);
       ctx.beginPath();
       ctx.moveTo(neckLeftX + 2, neckY);
-      ctx.quadraticCurveTo(w / 2, anchor.y - 4, anchor.x, anchor.y - 4);
-      ctx.moveTo(neckLeftX - 2, neckY);
-      ctx.quadraticCurveTo(w / 2, anchor.y + 4, anchor.x, anchor.y + 4);
+      ctx.quadraticCurveTo(w / 2, leftAnchor.y - 3, leftAnchor.x, leftAnchor.y - 3);
       ctx.moveTo(neckRightX - 2, neckY);
-      ctx.quadraticCurveTo(w / 2, anchor.y - 4, anchor.x, anchor.y - 4);
-      ctx.moveTo(neckRightX + 2, neckY);
-      ctx.quadraticCurveTo(w / 2, anchor.y + 4, anchor.x, anchor.y + 4);
+      ctx.quadraticCurveTo(w / 2, rightAnchor.y - 3, rightAnchor.x, rightAnchor.y - 3);
       ctx.stroke();
       ctx.restore();
 
-      // 2. MAIN HANGING STRAP
-      ctx.save();
-      ctx.lineCap = 'round';
-      ctx.lineJoin = 'round';
+      // 2. HELPER TO DRAW A STRAND (Left & Right)
+      const renderStrand = (anchor, strand) => {
+        const fullPoints = [anchor, ...strand, claspPos];
 
-      ctx.lineWidth = 14;
-      ctx.strokeStyle = 'rgba(0,0,0,0.35)';
-      ctx.beginPath();
-      for (let i = 0; i < 4; i++) {
-        const p = points[i];
-        if (i === 0) ctx.moveTo(p.x, p.y + 4);
-        else ctx.lineTo(p.x, p.y + 4);
-      }
-      ctx.stroke();
+        // Elastic stretch factor: strap thins slightly when under extreme tension
+        const currentLength = Math.hypot(claspPos.x - anchor.x, claspPos.y - anchor.y);
+        const stretchRatio = Math.min(1.5, Math.max(0.85, currentLength / 140));
+        const strapWidth = Math.max(9, 13 - (stretchRatio - 1) * 6);
 
-      ctx.lineWidth = 13;
-      ctx.strokeStyle = '#0e0e0e';
-      ctx.beginPath();
-      for (let i = 0; i < 4; i++) {
-        const p = points[i];
-        if (i === 0) ctx.moveTo(p.x, p.y);
-        else ctx.lineTo(p.x, p.y);
-      }
-      ctx.stroke();
-      ctx.restore();
-
-      // 3. WHITE EMBROIDERED "ARK" TEXT & STITCHES
-      ctx.save();
-      ctx.font = 'bold 9px "JetBrains Mono", monospace';
-      ctx.fillStyle = '#ffffff';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-
-      for (let i = 0; i < 3; i++) {
-        const p1 = points[i];
-        const p2 = points[i + 1];
-
-        const midX = (p1.x + p2.x) / 2;
-        const midY = (p1.y + p2.y) / 2;
-        const dx = p2.x - p1.x;
-        const dy = p2.y - p1.y;
-        const angle = Math.atan2(dy, dx);
-
+        // A. Strap Shadow
         ctx.save();
-        ctx.translate(midX, midY);
-        ctx.rotate(angle);
-
-        ctx.strokeStyle = 'rgba(255,255,255,0.45)';
-        ctx.lineWidth = 1.0;
-        ctx.setLineDash([3, 4]);
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        ctx.lineWidth = strapWidth + 2;
+        ctx.strokeStyle = 'rgba(0,0,0,0.38)';
         ctx.beginPath();
-        ctx.moveTo(-16, -4.5);
-        ctx.lineTo(16, -4.5);
-        ctx.moveTo(-16, 4.5);
-        ctx.lineTo(16, 4.5);
+        ctx.moveTo(fullPoints[0].x, fullPoints[0].y + 4);
+        for (let i = 1; i < fullPoints.length - 1; i++) {
+          const xc = (fullPoints[i].x + fullPoints[i + 1].x) / 2;
+          const yc = (fullPoints[i].y + 4 + (fullPoints[i + 1].y + 4)) / 2;
+          ctx.quadraticCurveTo(fullPoints[i].x, fullPoints[i].y + 4, xc, yc);
+        }
+        ctx.lineTo(claspPos.x, claspPos.y + 4);
         ctx.stroke();
 
-        ctx.fillText('ARK', 0, 0.5);
+        // B. Dark Cyber Fabric Strap
+        ctx.lineWidth = strapWidth;
+        ctx.strokeStyle = '#0b0f17';
+        ctx.beginPath();
+        ctx.moveTo(fullPoints[0].x, fullPoints[0].y);
+        for (let i = 1; i < fullPoints.length - 1; i++) {
+          const xc = (fullPoints[i].x + fullPoints[i + 1].x) / 2;
+          const yc = (fullPoints[i].y + fullPoints[i + 1].y) / 2;
+          ctx.quadraticCurveTo(fullPoints[i].x, fullPoints[i].y, xc, yc);
+        }
+        ctx.lineTo(claspPos.x, claspPos.y);
+        ctx.stroke();
+
+        // C. Subtle Neon Blue Outer Rail
+        ctx.lineWidth = 1;
+        ctx.strokeStyle = 'rgba(0, 94, 255, 0.35)';
+        ctx.stroke();
+
+        // D. White Embroidered Stitch Lines
+        ctx.strokeStyle = 'rgba(255,255,255,0.42)';
+        ctx.lineWidth = 1.0;
+        ctx.setLineDash([3, 4]);
+        ctx.stroke();
         ctx.restore();
-      }
-      ctx.restore();
 
-      // 4. SHOULDER COLLAR CLIP
+        // E. Embroidered "ARK" Text on Midpoint Segment
+        if (fullPoints.length >= 3) {
+          const midIdx = Math.floor(fullPoints.length / 2);
+          const pA = fullPoints[midIdx - 1];
+          const pB = fullPoints[midIdx];
+
+          const midX = (pA.x + pB.x) / 2;
+          const midY = (pA.y + pB.y) / 2;
+          const angle = Math.atan2(pB.y - pA.y, pB.x - pA.x);
+
+          ctx.save();
+          ctx.translate(midX, midY);
+          ctx.rotate(angle);
+          ctx.font = 'bold 8.5px "JetBrains Mono", monospace';
+          ctx.fillStyle = '#ffffff';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText('ARK', 0, 0);
+          ctx.restore();
+        }
+      };
+
+      // Draw both hanging strands
+      renderStrand(leftAnchor, leftStrand);
+      renderStrand(rightAnchor, rightStrand);
+
+      // 3. COLLAR ADJUSTMENT CLIPS (At Neck Anchors)
+      const drawCollarClip = (pt) => {
+        ctx.save();
+        ctx.fillStyle = metalGrad;
+        ctx.beginPath();
+        ctx.arc(pt.x, pt.y, 7.5, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = '#1a1f2c';
+        ctx.lineWidth = 1.2;
+        ctx.stroke();
+        ctx.restore();
+      };
+
+      drawCollarClip(leftAnchor);
+      drawCollarClip(rightAnchor);
+
+      // 4. METALLIC CLASP & TRIGGER HOOK ASSEMBLY
+      const dx = card.x - claspPos.x;
+      const dy = card.y - claspPos.y;
+      const claspAngle = Math.atan2(dy, dx);
+
       ctx.save();
-      ctx.fillStyle = metalGrad;
-      ctx.beginPath();
-      ctx.arc(anchor.x, anchor.y, 8, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.strokeStyle = '#222';
-      ctx.lineWidth = 1;
-      ctx.stroke();
-      ctx.restore();
-
-      // 5. TRIGGER SNAP CLASP
-      const dx = cardN.x - clasp.x;
-      const dy = cardN.y - clasp.y;
-      const angle = Math.atan2(dy, dx);
-
-      ctx.save();
-      ctx.translate(clasp.x, clasp.y);
-      ctx.rotate(angle);
+      ctx.translate(claspPos.x, claspPos.y);
+      ctx.rotate(claspAngle - Math.PI / 2); // Orient towards card
 
       ctx.fillStyle = metalGrad;
       ctx.strokeStyle = metalGrad;
 
-      ctx.lineWidth = 2.5;
+      // Swivel D-Ring (top)
+      ctx.lineWidth = 2.4;
       ctx.beginPath();
       ctx.arc(0, 0, 6, Math.PI, 0);
       ctx.lineTo(6, 4);
@@ -406,17 +485,25 @@ export default function LanyardCard() {
       ctx.closePath();
       ctx.stroke();
 
+      // Swivel Barrel (middle cylinder)
       ctx.beginPath();
-      ctx.rect(-3, 4, 6, 5);
+      ctx.rect(-3.5, 4, 7, 6);
       ctx.fill();
-
-      ctx.lineWidth = 2.2;
-      ctx.beginPath();
-      ctx.arc(0, 16, 7, -Math.PI / 2, Math.PI * 1.5);
+      ctx.strokeStyle = '#181e28';
+      ctx.lineWidth = 0.8;
       ctx.stroke();
 
-      ctx.strokeStyle = '#444';
-      ctx.lineWidth = 1.2;
+      // Snap Hook Loop
+      ctx.fillStyle = metalGrad;
+      ctx.strokeStyle = metalGrad;
+      ctx.lineWidth = 2.4;
+      ctx.beginPath();
+      ctx.arc(0, 16, 7.5, -Math.PI / 2, Math.PI * 1.5);
+      ctx.stroke();
+
+      // Trigger Lever Pin
+      ctx.strokeStyle = '#222';
+      ctx.lineWidth = 1.3;
       ctx.beginPath();
       ctx.moveTo(5.5, 11);
       ctx.lineTo(-4.5, 20);
@@ -424,22 +511,31 @@ export default function LanyardCard() {
 
       ctx.fillStyle = metalGrad;
       ctx.beginPath();
-      ctx.arc(-5.5, 13, 2, 0, Math.PI * 2);
+      ctx.arc(-5.5, 13, 2.2, 0, Math.PI * 2);
       ctx.fill();
+
+      // Card slot attachment rivet
+      ctx.beginPath();
+      ctx.arc(0, 28, 3.5, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = '#005eff';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+
       ctx.restore();
     };
 
+    // 5. DOM TRANSFORM UPDATE
     const applyTransform = () => {
-      if (!cardNode) return;
       const cardWidth = scene.offsetWidth || 300;
-      const x = cardNode.x - cardWidth / 2;
-      const y = cardNode.y;
-      const vx = cardNode.x - cardNode.px;
-      const tilt = vx * 0.8;
+      const x = card.x - cardWidth / 2;
+      const y = card.y;
 
-      scene.style.transform = `translate3d(${x}px, ${y}px, 0) rotateZ(${tilt}deg)`;
+      // Hardware accelerated 3D transform with dynamic elastic rotation tilt
+      scene.style.transform = `translate3d(${x}px, ${y}px, 0) rotateZ(${card.angle}deg)`;
     };
 
+    // 6. ANIMATION LOOP
     const animate = () => {
       if (!active) return;
       updatePhysics();
@@ -461,9 +557,15 @@ export default function LanyardCard() {
     };
   }, []);
 
+  // Card click (flip): Only flip if user didn't drag it!
   const handleCardClick = () => {
+    if (hasDraggedRef.current) return;
     playClickSound();
     setIsFlipped((prev) => !prev);
+    // Impart a snappy downward elastic pluck when card flips!
+    if (nudgeRef.current) {
+      nudgeRef.current(22, (Math.random() > 0.5 ? 4.5 : -4.5));
+    }
   };
 
   const handleKeyDown = (e) => {
@@ -471,22 +573,25 @@ export default function LanyardCard() {
       e.preventDefault();
       playClickSound();
       setIsFlipped((prev) => !prev);
+      if (nudgeRef.current) {
+        nudgeRef.current(22, (Math.random() > 0.5 ? 4.5 : -4.5));
+      }
     }
   };
 
   return (
     <div className="about-card-wrapper" ref={containerRef}>
-      {/* Simulation Canvas */}
+      {/* Elastic Canvas Simulation */}
       <canvas ref={canvasRef} className="lanyard-canvas" aria-hidden="true" />
 
-      {/* ID Card Scene */}
+      {/* ID Card Scene with Elastic Spring Physics */}
       <div
         className="id-card-scene"
         id="idCardScene"
         ref={sceneRef}
         role="button"
         tabIndex={0}
-        aria-label="ID Card — press Enter or Space to flip"
+        aria-label="ID Card — drag to stretch elastically, click or hover to flip"
         onClick={handleCardClick}
         onKeyDown={handleKeyDown}
       >
@@ -597,7 +702,7 @@ export default function LanyardCard() {
         </div>
       </div>
       <p className="flip-hint" aria-hidden="true">
-        <i className="fa-solid fa-rotate"></i> hover or tap to flip
+        <i className="fa-solid fa-arrows-up-down"></i> drag to stretch &bull; <i className="fa-solid fa-rotate"></i> hover or tap to flip
       </p>
     </div>
   );

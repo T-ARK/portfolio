@@ -40,28 +40,40 @@ export const heroMetrics = [
 
 export const skillCategories = [
   {
-    title: "Development",
-    category: "development",
-    count: "[06]",
-    skills: ["C++", "Java", "Python", "Algorithms", "Debugging", "OOP Logic"]
+    title: "Core Languages",
+    category: "languages",
+    count: "[08]",
+    skills: ["Python", "Java", "C++", "JavaScript (ES6+)", "Algorithms", "OOP Logic", "Debugging", "Data Structures"]
   },
   {
-    title: "Design & Web",
-    category: "design",
-    count: "[06]",
-    skills: ["HTML", "CSS", "Responsive UI", "Styling", "Wireframing", "Clean Layouts"]
+    title: "Data Science & Analytics",
+    category: "datascience",
+    count: "[07]",
+    skills: ["Pandas", "NumPy", "Matplotlib", "Exploratory Data Analysis (EDA)", "Data Cleaning", "Data Visualization", "Jupyter Notebooks"]
   },
   {
-    title: "Databases",
+    title: "Web & Frontend",
+    category: "frontend",
+    count: "[08]",
+    skills: ["React 19", "Vite", "HTML5", "CSS3 / Modern Layouts", "Responsive UI", "Micro-Animations", "Wireframing", "Component Architecture"]
+  },
+  {
+    title: "Backend & APIs",
+    category: "backend",
+    count: "[07]",
+    skills: ["Flask", "Flask-CORS", "FastAPI", "RESTful APIs", "API Integration", "JSON Endpoints", "Postman"]
+  },
+  {
+    title: "Databases & ORM",
     category: "databases",
-    count: "[03]",
-    skills: ["MySQL", "PostgreSQL", "SQLite"]
+    count: "[07]",
+    skills: ["PostgreSQL", "MySQL", "SQLite", "SQLAlchemy", "Schema Migration", "DDL Parsing", "Data Consistency"]
   },
   {
-    title: "Tools & Env",
+    title: "Tools & Workflow",
     category: "tools",
-    count: "[04]",
-    skills: ["Git", "GitHub", "VS Code", "Jupyter Notebooks"]
+    count: "[07]",
+    skills: ["Git", "GitHub", "VS Code", "Linux Terminal", "Vite / npm", "Netlify Deployment", "Jupyter Lab"]
   }
 ];
 
