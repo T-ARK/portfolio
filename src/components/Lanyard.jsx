@@ -219,7 +219,7 @@ const loadImage = (cache, url) => {
 const cardLayout = (orientation, cornerRadius) => {
   const [width, height] = CARD_SIZES[orientation] || CARD_SIZES.portrait;
   const radius = mix(0.03, Math.min(width, height) * 0.2, clamp(cornerRadius, 0, 1));
-  const slot = { width: 0.34, height: 0.07, y: height / 2 - 0.13 };
+  const slot = { width: 0.15, height: 0.08, y: height / 2 - 0.13 };
   const ringY = height / 2 - 0.055;
   return { width, height, radius, slot, ringY, hangY: ringY + RING_RADIUS };
 };
@@ -264,20 +264,98 @@ const buildCardGeometry = layout => {
   return { body, face };
 };
 
-const buildClampGeometry = width => {
+const buildDRingGeometry = width => {
+  const w = width * 1.05;
+  const h = 0.15;
+  const curve = new THREE.CurvePath();
+  curve.add(new THREE.LineCurve3(new THREE.Vector3(-w / 2 + 0.04, h, 0), new THREE.Vector3(w / 2 - 0.04, h, 0)));
+  curve.add(new THREE.QuadraticBezierCurve3(new THREE.Vector3(w / 2 - 0.04, h, 0), new THREE.Vector3(w / 2, h, 0), new THREE.Vector3(w / 2, h - 0.04, 0)));
+  curve.add(new THREE.QuadraticBezierCurve3(new THREE.Vector3(w / 2, h - 0.04, 0), new THREE.Vector3(w / 2 * 0.9, 0.03, 0), new THREE.Vector3(0.04, 0.015, 0)));
+  curve.add(new THREE.LineCurve3(new THREE.Vector3(0.04, 0.015, 0), new THREE.Vector3(-0.04, 0.015, 0)));
+  curve.add(new THREE.QuadraticBezierCurve3(new THREE.Vector3(-0.04, 0.015, 0), new THREE.Vector3(-w / 2 * 0.9, 0.03, 0), new THREE.Vector3(-w / 2, h - 0.04, 0)));
+  curve.add(new THREE.QuadraticBezierCurve3(new THREE.Vector3(-w / 2, h - 0.04, 0), new THREE.Vector3(-w / 2, h, 0), new THREE.Vector3(-w / 2 + 0.04, h, 0)));
+  return new THREE.TubeGeometry(curve, 36, 0.011, 10, true);
+};
+
+const buildSwivelUpperGroup = material => {
+  const group = new THREE.Group();
+  const c1 = new THREE.Mesh(new THREE.CylinderGeometry(0.042, 0.042, 0.02, 20), material);
+  c1.position.y = 0.01;
+  const c2 = new THREE.Mesh(new THREE.CylinderGeometry(0.034, 0.034, 0.024, 20), material);
+  c2.position.y = -0.012;
+  const c3 = new THREE.Mesh(new THREE.CylinderGeometry(0.044, 0.044, 0.018, 20), material);
+  c3.position.y = -0.033;
+  group.add(c1, c2, c3);
+  return group;
+};
+
+const buildLobsterClaspGroup = (slotY, ringY, metalMaterial, grommetMaterial) => {
+  const group = new THREE.Group();
+  const deltaY = slotY - ringY;
+
+  // 1. Lower swivel collar
+  const collarGeom = new THREE.CylinderGeometry(0.042, 0.046, 0.038, 20);
+  const collar = new THREE.Mesh(collarGeom, metalMaterial);
+  collar.position.y = 0.08;
+  group.add(collar);
+
+  // 2. Clasp Body Extrude Shape with thumb trigger
   const shape = new THREE.Shape();
-  const w = width * 1.16;
-  traceRoundedRect(shape, -w / 2 + 0.014, -CLAMP_BODY / 2 + 0.014, w - 0.028, CLAMP_BODY - 0.028, 0.024);
-  const geometry = new THREE.ExtrudeGeometry(shape, {
-    depth: 0.02,
+  shape.moveTo(-0.028, 0.06);
+  shape.lineTo(-0.038, 0.02);
+  shape.lineTo(-0.082, 0.035);
+  shape.lineTo(-0.092, 0.015);
+  shape.lineTo(-0.052, -0.01);
+  shape.lineTo(-0.042, -0.05);
+  shape.lineTo(-0.018, -0.08);
+  shape.lineTo(0.012, -0.08);
+  shape.bezierCurveTo(0.055, -0.05, 0.055, 0.02, 0.028, 0.06);
+  shape.closePath();
+
+  const bodyGeom = new THREE.ExtrudeGeometry(shape, {
+    depth: 0.022,
     bevelEnabled: true,
-    bevelThickness: 0.014,
-    bevelSize: 0.014,
-    bevelSegments: 6,
-    curveSegments: 10
+    bevelThickness: 0.005,
+    bevelSize: 0.005,
+    bevelSegments: 4,
+    curveSegments: 16
   });
-  geometry.translate(0, 0, -0.01);
-  return geometry;
+  bodyGeom.translate(0, 0, -0.011);
+  const body = new THREE.Mesh(bodyGeom, metalMaterial);
+  group.add(body);
+
+  // 3. Central Pivot Rivet
+  const rivetGeom = new THREE.CylinderGeometry(0.015, 0.015, 0.032, 16);
+  rivetGeom.rotateX(Math.PI / 2);
+  const rivet = new THREE.Mesh(rivetGeom, metalMaterial);
+  rivet.position.set(-0.005, -0.015, 0);
+  group.add(rivet);
+
+  // 4. Hook Claw curving through punch hole
+  const hookCurve = new THREE.CurvePath();
+  hookCurve.add(new THREE.CubicBezierCurve3(
+    new THREE.Vector3(0.018, -0.075, 0),
+    new THREE.Vector3(0.045, -0.10, 0),
+    new THREE.Vector3(0.035, deltaY - 0.015, 0.02),
+    new THREE.Vector3(0.0, deltaY - 0.025, 0)
+  ));
+  hookCurve.add(new THREE.CubicBezierCurve3(
+    new THREE.Vector3(0.0, deltaY - 0.025, 0),
+    new THREE.Vector3(-0.035, deltaY - 0.015, -0.02),
+    new THREE.Vector3(-0.035, deltaY + 0.04, 0),
+    new THREE.Vector3(-0.012, -0.065, 0)
+  ));
+  const hookGeom = new THREE.TubeGeometry(hookCurve, 32, 0.011, 10, false);
+  const hook = new THREE.Mesh(hookGeom, metalMaterial);
+  group.add(hook);
+
+  // 5. Hole grommet reinforcement ring
+  const grommetGeom = new THREE.TorusGeometry(0.045, 0.008, 12, 32);
+  const grommet = new THREE.Mesh(grommetGeom, grommetMaterial);
+  grommet.position.set(0, deltaY, 0);
+  group.add(grommet);
+
+  return group;
 };
 
 const buildBandGeometry = count => {
@@ -844,13 +922,19 @@ const Lanyard = ({
       side: THREE.DoubleSide
     });
 
+    const grommetMaterial = new THREE.MeshStandardMaterial({
+      color: 0x6e727e,
+      roughness: 0.28,
+      metalness: 0.9
+    });
+
+    let layout = cardLayout('portrait', 0.3);
     const cardGroup = new THREE.Group();
     const bodyMesh = new THREE.Mesh(undefined, edgeMaterial);
     const frontMesh = new THREE.Mesh(undefined, frontMaterial);
     const backMesh = new THREE.Mesh(undefined, backMaterial);
-    const ring = new THREE.Mesh(new THREE.TorusGeometry(RING_RADIUS, RING_TUBE, 18, 72), metalMaterial);
-    ring.rotation.y = Math.PI / 2 - 0.7;
-    cardGroup.add(bodyMesh, frontMesh, backMesh, ring);
+    let claspGroup = buildLobsterClaspGroup(layout.slot.y, layout.ringY, metalMaterial, grommetMaterial);
+    cardGroup.add(bodyMesh, frontMesh, backMesh, claspGroup);
     scene.add(cardGroup);
 
     const bandGeometry = buildBandGeometry(SAMPLES);
@@ -859,10 +943,9 @@ const Lanyard = ({
     scene.add(band);
 
     const clampGroup = new THREE.Group();
-    const clampMesh = new THREE.Mesh(buildClampGeometry(STRAP_WIDTH), metalMaterial);
-    clampMesh.position.y = EYELET_RADIUS + CLAMP_BODY / 2 - 0.004;
-    const eyelet = new THREE.Mesh(new THREE.TorusGeometry(EYELET_RADIUS, 0.0105, 14, 40), metalMaterial);
-    clampGroup.add(clampMesh, eyelet);
+    const dRingMesh = new THREE.Mesh(buildDRingGeometry(STRAP_WIDTH), metalMaterial);
+    const swivelUpper = buildSwivelUpperGroup(metalMaterial);
+    clampGroup.add(dRingMesh, swivelUpper);
     scene.add(clampGroup);
 
     const sim = createSimulation();
@@ -871,7 +954,6 @@ const Lanyard = ({
     const tuck = new THREE.Vector3();
     const curve = new THREE.CatmullRomCurve3(controls, false, 'centripetal');
     const view = { width: 1, height: 1 };
-    let layout = cardLayout('portrait', 0.3);
     let applied = {};
     let strapScale = STRAP_WIDTH;
     let tileRatio = 2;
@@ -932,7 +1014,7 @@ const Lanyard = ({
       foilUniforms.foilTop.value.set(0.5, 4.5, 8).normalize().transformDirection(camera.matrixWorldInverse);
       const anchorX = ((ANCHORS[s.anchor] ?? 0.5) - 0.5) * viewWidth;
       const anchorY = viewHeight / 2 + 0.2;
-      const cardTop = viewHeight / 2 - viewHeight * mix(0.12, 0.42, clamp(s.strapLength, 0, 1));
+      const cardTop = viewHeight / 2 - viewHeight * mix(0.08, 0.36, clamp(s.strapLength, 0, 1));
       const hangTop = cardTop + (layout.hangY - layout.height / 2);
       sim.anchor.set(anchorX, anchorY, 0);
       configureSimulation(sim, layout, anchorY - hangTop);
@@ -960,7 +1042,10 @@ const Lanyard = ({
         frontMesh.position.z = THICKNESS / 2 + BEVEL + 0.0006;
         backMesh.rotation.y = Math.PI;
         backMesh.position.z = -(THICKNESS / 2 + BEVEL + 0.0006);
-        ring.position.set(0, layout.ringY, 0);
+        cardGroup.remove(claspGroup);
+        claspGroup.traverse(c => { if (c.isMesh) c.geometry?.dispose(); });
+        claspGroup = buildLobsterClaspGroup(layout.slot.y, layout.ringY, metalMaterial, grommetMaterial);
+        cardGroup.add(claspGroup);
         applied.framingKey = '';
       }
       const framingKey = `${layoutKey}|${s.size}|${s.anchor}|${s.strapLength}|${view.width}|${view.height}`;
@@ -1015,8 +1100,8 @@ const Lanyard = ({
       metalMaterial.roughness = metalLook.roughness;
       strapScale = STRAP_WIDTH * clamp(s.strapWidth, 0.4, 2);
       if (strapScale !== applied.strapScale) {
-        clampMesh.geometry.dispose();
-        clampMesh.geometry = buildClampGeometry(strapScale);
+        dRingMesh.geometry.dispose();
+        dRingMesh.geometry = buildDRingGeometry(strapScale);
       }
       canvas.style.touchAction = s.interactive ? 'pan-y' : 'auto';
 
@@ -1289,8 +1374,10 @@ const Lanyard = ({
       canvas.removeEventListener('pointercancel', onPointerUp);
       canvas.removeEventListener('lostpointercapture', onPointerUp);
       canvas.removeEventListener('touchstart', onTouchStart);
-      [bodyMesh, frontMesh, backMesh, ring, clampMesh, eyelet, band].forEach(mesh => mesh.geometry?.dispose());
-      [frontMaterial, backMaterial, edgeMaterial, metalMaterial, bandMaterial].forEach(material => material.dispose());
+      [bodyMesh, frontMesh, backMesh, band, dRingMesh].forEach(mesh => mesh.geometry?.dispose());
+      swivelUpper.traverse(c => { if (c.isMesh) c.geometry?.dispose(); });
+      claspGroup.traverse(c => { if (c.isMesh) c.geometry?.dispose(); });
+      [frontMaterial, backMaterial, edgeMaterial, metalMaterial, grommetMaterial, bandMaterial].forEach(material => material.dispose());
       [frontTexture, backTexture, strapTexture, grain, weave].forEach(texture => texture.dispose());
       environment.dispose();
       renderer.dispose();

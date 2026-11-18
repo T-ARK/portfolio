@@ -25,17 +25,17 @@ export default function About() {
                 frontImage="/card-front.png"
                 backImage="/card-back.png"
                 strapImage="/band.png"
-                cardColor="#0b0f19"
+                cardColor="#0c0e12"
                 finish="smooth"
-                metal="silver"
+                metal="black"
                 gravity={0.9}
                 damping={0.5}
                 elasticity={0.65}
                 breeze={0.35}
                 interactive={true}
                 intro={true}
-                strapLength={0.46}
-                size={0.62}
+                strapLength={0.16}
+                size={0.65}
               />
             </div>
             <p className="flip-hint" aria-hidden="true">
